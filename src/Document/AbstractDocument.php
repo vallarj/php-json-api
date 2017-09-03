@@ -16,12 +16,22 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Document;
 
-class Module
+
+use Vallarj\JsonApi\Schema\ResourceSchema;
+
+abstract class AbstractDocument
 {
-    public function getConfig()
+    protected $resourceSchema;
+
+    function __construct()
     {
-        return include __DIR__ . '/../config/module.config.php';
+        $this->resourceSchema = [];
+    }
+
+    public function addResourceSchema(ResourceSchema $resourceSchema): void
+    {
+        $this->resourceSchema[$resourceSchema->getType()] = $resourceSchema;
     }
 }

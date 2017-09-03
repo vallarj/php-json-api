@@ -16,12 +16,10 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Exception;
 
-class Module
+
+class InvalidSpecificationException extends \Exception
 {
-    public function getConfig()
-    {
-        return include __DIR__ . '/../config/module.config.php';
-    }
+
 }
