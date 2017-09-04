@@ -19,35 +19,28 @@
 namespace Vallarj\JsonApi\Document;
 
 
-use Vallarj\JsonApi\Schema\ResourceSchema;
-
-abstract class AbstractDocument
+class SingleResourceDocument extends AbstractDocument
 {
-    private $resourceSchemas;
+    private $boundObject;
+    private $resourceAttributes;
+    private $resourceRelationships;
 
     /**
-     * AbstractDocument constructor.
+     * SingleResourceDocument constructor.
      */
     function __construct()
     {
-        $this->resourceSchemas = [];
+        parent::__construct();
+        $this->resourceAttributes = [];
+        $this->resourceRelationships = [];
     }
 
     /**
-     * Returns the list of ResourceSchemas the document can use
-     * @return ResourceSchema[]
+     * Binds an object to the document
+     * @param $object
      */
-    public function getResourceSchemas(): array
+    public function bind($object)
     {
-        return $this->resourceSchemas;
-    }
-
-    /**
-     * Adds a ResourceSchema to the list of ResourceSchemas that the document can use
-     * @param ResourceSchema $resourceSchema
-     */
-    public function addResourceSchema(ResourceSchema $resourceSchema): void
-    {
-        $this->resourceSchemas[$resourceSchema->getType()] = $resourceSchema;
+        $this->boundObject = $object;
     }
 }
