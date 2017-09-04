@@ -41,7 +41,7 @@ class SchemaAttribute
      * @return SchemaAttribute
      * @throws InvalidSpecificationException
      */
-    public static function fromArray(array $attributeSpecifications)
+    public static function fromArray(array $attributeSpecifications): SchemaAttribute
     {
         if(!isset($attributeSpecifications['key'])) {
             throw new InvalidSpecificationException("Index 'key' is required");
