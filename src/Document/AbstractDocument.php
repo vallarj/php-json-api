@@ -23,6 +23,7 @@ use Vallarj\JsonApi\Schema\ResourceSchema;
 
 abstract class AbstractDocument
 {
+    /** @var ResourceSchema[] Array of ResourceSchemas used by the document */
     private $resourceSchemas;
 
     /**
@@ -34,12 +35,17 @@ abstract class AbstractDocument
     }
 
     /**
-     * Returns the list of ResourceSchemas the document can use
-     * @return ResourceSchema[]
+     * Returns the ResourceSchema bindable with the given FQCN
+     * @param string $class
+     * @return null|ResourceSchema
      */
-    public function getResourceSchemas(): array
+    public function getResourceSchema(string $class): ?ResourceSchema
     {
-        return $this->resourceSchemas;
+        if(isset($this->resourceSchemas[$class])) {
+            return $this->resourceSchemas[$class];
+        }
+
+        return null;
     }
 
     /**
@@ -48,6 +54,6 @@ abstract class AbstractDocument
      */
     public function addResourceSchema(ResourceSchema $resourceSchema): void
     {
-        $this->resourceSchemas[$resourceSchema->getType()] = $resourceSchema;
+        $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
     }
 }

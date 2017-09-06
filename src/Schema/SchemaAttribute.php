@@ -23,6 +23,7 @@ use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
 class SchemaAttribute
 {
+    /** @var string Specifies the key of the attribute */
     private $key;
 
     /**

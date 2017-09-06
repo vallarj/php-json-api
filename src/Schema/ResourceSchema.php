@@ -24,10 +24,20 @@ use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
 class ResourceSchema
 {
+    /** @var string Specifies the resource type */
     private $type;
+
+    /** @var string Specifies the FQCN of the object to bind this schema */
     private $class;
+
+    /** @var SchemaAttribute[] Attributes of this schema */
     private $attributes;
+
+    /** @var SchemaRelationship[] Relationships of this schema */
     private $relationships;
+
+    /** @var string The property name of the object's identifier*/
+    private $identifierPropertyName;
 
     /**
      * ResourceSchema constructor.
@@ -38,6 +48,11 @@ class ResourceSchema
     {
         $this->type = $type;
         $this->class = $class;
+        $this->attributes = [];
+        $this->relationships = [];
+
+        // Set defaults
+        $this->identifierPropertyName = 'id';
     }
 
     /**
@@ -105,6 +120,15 @@ class ResourceSchema
     }
 
     /**
+     * Gets the attributes of this schema
+     * @return SchemaAttribute[]
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
      * Add a SchemaAttribute to the ResourceSchema.
      * If an attribute in the array with the same key exists, it will be replaced.
      * @param SchemaAttribute|array $attribute  If argument is an array, it must be compatible
@@ -124,6 +148,24 @@ class ResourceSchema
             // Must be a SchemaAttribute instance or a compatible array
             throw InvalidArgumentException::fromResourceSchemaAddAttribute();
         }
+    }
+
+    /**
+     * Gets the identifier property name of the object to bind
+     * @return string
+     */
+    public function getIdentifierPropertyName(): string
+    {
+        return $this->identifierPropertyName;
+    }
+
+    /**
+     * Gets the relationships of this schema
+     * @return SchemaRelationship[]
+     */
+    public function getRelationships(): array
+    {
+        return $this->relationships;
     }
 
     /**

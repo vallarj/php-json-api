@@ -27,8 +27,13 @@ class SchemaRelationship
     const TO_ONE    =   "toOne";
     const TO_MANY   =   "toMany";
 
+    /** @var string Specifies the key of the relationship */
     private $key;
+
+    /** @var string Specifies relationship cardinality */
     private $cardinality;
+
+    /** @var ResourceSchema[] Array of ResourceSchemas used by this relationship */
     private $schemas;
 
     /**
@@ -98,6 +103,20 @@ class SchemaRelationship
     public function getCardinality(): string
     {
         return $this->cardinality;
+    }
+
+    /**
+     * Returns the ResourceSchema bindable with the given FQCN
+     * @param string $class
+     * @return null|ResourceSchema
+     */
+    public function getSchema(string $class): ?ResourceSchema
+    {
+        if(isset($this->schemas[$class])) {
+            return $this->schemas[$class];
+        }
+
+        return null;
     }
 
     /**

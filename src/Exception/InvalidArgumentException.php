@@ -54,4 +54,9 @@ class InvalidArgumentException extends \InvalidArgumentException
         return new self("Argument must be an instance of ResourceSchema or an array compatible " .
             "with ResourceSchema builder specifications");
     }
+
+    public static function fromSingleResourceDocumentBind()
+    {
+        return new self("Argument must be an object.");
+    }
 }
