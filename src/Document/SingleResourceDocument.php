@@ -85,7 +85,17 @@ class SingleResourceDocument extends AbstractDocument
         ];
 
         if(!empty($relationships['included'])) {
-            $root['included'] = $relationships['included'];
+            $included = $relationships['included'];
+
+            // For each included item, disassemble the array
+            foreach($included as $relType => $items) {
+                // First level: relationship types
+                foreach($items as $id => $item) {
+                    // Second level: relationship ids
+
+                    $root['included'][] = $item;
+                }
+            }
         }
 
         return $root;
@@ -118,6 +128,7 @@ class SingleResourceDocument extends AbstractDocument
     private function extractRelationships(array $schemaRelationships, $object): array
     {
         $relationships = [];
+        // A 2d array with relationship key as row index and relationship id as column index
         $included = [];
 
         foreach($schemaRelationships as $schemaRelationship) {
@@ -131,19 +142,36 @@ class SingleResourceDocument extends AbstractDocument
                     $relationships[$key] = [
                         "data" => null
                     ];
+
+                    continue;
                 }
 
                 // Get the compatible ResourceSchema for this object
                 $schema = $schemaRelationship->getSchema(get_class($relationshipObject));
 
                 if(!is_null($schema)) {
+                    // Get the type and ID of the relationship
+                    $relType = $schema->getType();
+                    $relId = $relationshipObject->{'get' . ucfirst($schema->getIdentifierPropertyName())}();
+
                     // Add relationship into the relationships array
                     $relationships[$key] = [
                         "data" => [
-                            "type" => $schema->getType(),
-                            "id" => $relationshipObject->{'get' . ucfirst($schema->getIdentifierPropertyName())}()
+                            "type" => $relType,
+                            "id" => $relId
                         ],
                     ];
+
+                    // If relationship is included
+                    if($schemaRelationship->isIncluded()) {
+                        $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
+
+                        $included[$relType][$relId] = [
+                            "type" => $relType,
+                            "id" => $relId,
+                            "attributes" => $relAttributes
+                        ];
+                    }
                 }
             } else if($schemaRelationship->getCardinality() === SchemaRelationship::TO_MANY) {
                 // Relationship object is assumed to be an array

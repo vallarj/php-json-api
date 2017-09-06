@@ -36,13 +36,18 @@ class SchemaRelationship
     /** @var ResourceSchema[] Array of ResourceSchemas used by this relationship */
     private $schemas;
 
+    /** @var bool Specifies if relationship is to be included in the document */
+    private $included;
+
     /**
      * SchemaRelationship constructor.
      * @param string $key           Specifies the relationship key
      * @param string $cardinality   Specifies relationship cardinality (to-One or to-Many)
+     * @param bool $included        Specifies if this relationship is to be included in the document.
+     *                              Defaults to false.
      * @throws InvalidArgumentException
      */
-    function __construct(string $key, string $cardinality)
+    function __construct(string $key, string $cardinality, bool $included = false)
     {
         if($cardinality != self::TO_ONE && $cardinality != self::TO_MANY) {
             throw InvalidArgumentException::fromSchemaRelationshipConstructor();
@@ -50,6 +55,7 @@ class SchemaRelationship
 
         $this->key = $key;
         $this->cardinality = $cardinality;
+        $this->included = $included;
         $this->schemas = [];
     }
 
@@ -70,8 +76,10 @@ class SchemaRelationship
             throw new InvalidSpecificationException("Index 'cardinality' is required");
         }
 
+        $included = isset($relationshipSpecifications['included']) ? $relationshipSpecifications['included'] : false;
+
         // Create a new instance of SchemaRelationship
-        $instance = new self($relationshipSpecifications['key'], $relationshipSpecifications['cardinality']);
+        $instance = new self($relationshipSpecifications['key'], $relationshipSpecifications['cardinality'], $included);
 
         // Create schemas
         if(isset($relationshipSpecifications['schemas']) && is_array($relationshipSpecifications['schemas'])) {
@@ -141,5 +149,23 @@ class SchemaRelationship
             throw InvalidArgumentException::fromSchemaRelationshipAddSchema();
         }
         $this->schemas[] = $schema;
+    }
+
+    /**
+     * Checks if this relationship is to be included in the document
+     * @return bool
+     */
+    public function isIncluded(): bool
+    {
+        return $this->included;
+    }
+
+    /**
+     * Sets whether or not this relationship is going to be included in the document
+     * @param bool $included
+     */
+    public function setIncluded(bool $included)
+    {
+        $this->included = $included;
     }
 }
