@@ -21,6 +21,12 @@ namespace Vallarj\JsonApi\Exception;
 
 class InvalidArgumentException extends \InvalidArgumentException
 {
+    public static function fromAbstractDocumentAddRelationship()
+    {
+        return new self("Argument must be an instance of ResourceSchema or an array compatible " .
+            "with ResourceSchema builder specifications");
+    }
+
     /**
      * Thrown when adding an invalid type of argument to the addAttribute method
      * of ResourceSchema class

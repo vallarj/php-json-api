@@ -129,7 +129,7 @@ class SchemaRelationship
     public function addSchema($schema): void
     {
         if($schema instanceof ResourceSchema) {
-            $this->schemas[] = $schema;
+            $this->schemas[$schema->getClass()] = $schema;
         } else if(is_array($schema)) {
             // Create a ResourceSchema from compatible specifications array
             $schema = ResourceSchema::fromArray($schema);

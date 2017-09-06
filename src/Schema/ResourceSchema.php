@@ -138,7 +138,7 @@ class ResourceSchema
     public function addAttribute($attribute): void
     {
         if($attribute instanceof SchemaAttribute) {
-            $this->attributes[] = $attribute;
+            $this->attributes[$attribute->getKey()] = $attribute;
         } else if(is_array($attribute)) {
             $attribute = SchemaAttribute::fromArray($attribute);
 
@@ -178,14 +178,14 @@ class ResourceSchema
     public function addRelationship($relationship): void
     {
         if($relationship instanceof SchemaRelationship) {
-            $this->relationships[] = $relationship;
+            $this->relationships[$relationship->getKey()] = $relationship;
         } else if(is_array($relationship)) {
             $relationship = SchemaRelationship::fromArray($relationship);
 
             // Add to the relationships array with the key as index.
             $this->relationships[$relationship->getKey()] = $relationship;
         } else {
-            // Must be a ResourceSchema instance or a compatible array
+            // Must be a SchemaRelationship instance or a compatible array
             throw InvalidArgumentException::fromResourceSchemaAddRelationship();
         }
     }

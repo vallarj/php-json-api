@@ -19,6 +19,7 @@
 namespace Vallarj\JsonApi\Document;
 
 
+use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\ResourceSchema;
 
 abstract class AbstractDocument
@@ -50,10 +51,23 @@ abstract class AbstractDocument
 
     /**
      * Adds a ResourceSchema to the list of ResourceSchemas that the document can use
-     * @param ResourceSchema $resourceSchema
+     * If a schema in the array with the same class exists, it will be replaced.
+     * @param ResourceSchema|array $resourceSchema  If argument is an array, it must be compatible with
+     *                                              the ResourceSchema builder specifications
+     * @throws InvalidArgumentException
      */
-    public function addResourceSchema(ResourceSchema $resourceSchema): void
+    public function addResourceSchema($resourceSchema): void
     {
-        $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
+        if($resourceSchema instanceof ResourceSchema) {
+            $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
+        } else if(is_array($resourceSchema)) {
+            $resourceSchema = ResourceSchema::fromArray($resourceSchema);
+
+            // Add to the schemas array with the class as index
+            $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
+        } else {
+            // Must be a ResourceSchema instance or a compatible array
+            throw InvalidArgumentException::fromAbstractDocumentAddRelationship();
+        }
     }
 }

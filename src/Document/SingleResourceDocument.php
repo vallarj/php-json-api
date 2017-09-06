@@ -71,7 +71,7 @@ class SingleResourceDocument extends AbstractDocument
         return [
             "data" => [
                 "type" => $resourceSchema->getType(),
-                "id" => $this->boundObject->{'get' . ucfirst($resourceSchema->getIdentifierPropertyName())},
+                "id" => $this->boundObject->{'get' . ucfirst($resourceSchema->getIdentifierPropertyName())}(),
                 "attributes" => $attributes,
                 "relationships" => $relationships['relationships'],
             ],
@@ -91,7 +91,7 @@ class SingleResourceDocument extends AbstractDocument
 
         foreach($schemaAttributes as $schemaAttribute) {
             $key = $schemaAttribute->getKey();
-            $attributes[$key] = $object->{'get' . ucfirst($key)};
+            $attributes[$key] = $object->{'get' . ucfirst($key)}();
         }
 
         return $attributes;
@@ -110,7 +110,7 @@ class SingleResourceDocument extends AbstractDocument
 
         foreach($schemaRelationships as $schemaRelationship) {
             $key = $schemaRelationship->getKey();
-            $relationshipObject = $object->{'get' . ucfirst($key)};
+            $relationshipObject = $object->{'get' . ucfirst($key)}();
 
             // If a To-One relationship
             if($schemaRelationship->getCardinality() === SchemaRelationship::TO_ONE) {
@@ -122,7 +122,7 @@ class SingleResourceDocument extends AbstractDocument
                     $relationships[$key] = [
                         "data" => [
                             "type" => $schema->getType(),
-                            "id" => $relationshipObject->{'get' . ucfirst($schema->getIdentifierPropertyName())}
+                            "id" => $relationshipObject->{'get' . ucfirst($schema->getIdentifierPropertyName())}()
                         ],
                     ];
                 }
@@ -140,7 +140,7 @@ class SingleResourceDocument extends AbstractDocument
                     $relationships[$key][] = [
                         "data" => [
                             "type" => $schema->getType(),
-                            "id" => $item->{'get' . ucfirst($schema->getIdentifierPropertyName())}
+                            "id" => $item->{'get' . ucfirst($schema->getIdentifierPropertyName())}()
                         ],
                     ];
                 }

@@ -1,6 +1,6 @@
 {
-    "name": "vallarj/jsonapi-php",
-    "description": "JSONAPI implementation for PHP 7.0+",
+    "name": "vallarj/zend-jsonapi",
+    "description": "JSONAPI implementation for Zend Framework 3",
     "type": "library",
     "license": "Apache-2.0",
     "keywords": [
