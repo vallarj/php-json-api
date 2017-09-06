@@ -68,15 +68,27 @@ class SingleResourceDocument extends AbstractDocument
         $relationships = $this->extractRelationships($resourceSchema->getRelationships(), $this->boundObject);
 
         // Build the return object
-        return [
-            "data" => [
-                "type" => $resourceSchema->getType(),
-                "id" => $this->boundObject->{'get' . ucfirst($resourceSchema->getIdentifierPropertyName())}(),
-                "attributes" => $attributes,
-                "relationships" => $relationships['relationships'],
-            ],
-            "included" => $relationships['included'],
+
+        $data = [
+            "type" => $resourceSchema->getType(),
+            "id" => $this->boundObject->{'get' . ucfirst($resourceSchema->getIdentifierPropertyName())}(),
+            "attributes" => $attributes,
         ];
+
+        // Include relationships if not empty
+        if(!empty($relationships['relationships'])) {
+            $data['relationships'] = $relationships['relationships'];
+        }
+
+        $root = [
+            "data" => $data
+        ];
+
+        if(!empty($relationships['included'])) {
+            $root['included'] = $relationships['included'];
+        }
+
+        return $root;
     }
 
     /**
