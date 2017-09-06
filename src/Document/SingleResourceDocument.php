@@ -126,6 +126,13 @@ class SingleResourceDocument extends AbstractDocument
 
             // If a To-One relationship
             if($schemaRelationship->getCardinality() === SchemaRelationship::TO_ONE) {
+                // if relationshipObject is null, set relationship data as null
+                if(is_null($relationshipObject)) {
+                    $relationships[$key] = [
+                        "data" => null
+                    ];
+                }
+
                 // Get the compatible ResourceSchema for this object
                 $schema = $schemaRelationship->getSchema(get_class($relationshipObject));
 
