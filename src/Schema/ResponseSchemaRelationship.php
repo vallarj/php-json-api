@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class SchemaRelationship
+class ResponseSchemaRelationship
 {
     const TO_ONE    =   "toOne";
     const TO_MANY   =   "toMany";
@@ -33,14 +33,17 @@ class SchemaRelationship
     /** @var string Specifies relationship cardinality */
     private $cardinality;
 
-    /** @var ResourceSchema[] Array of ResourceSchemas used by this relationship */
-    private $schemas;
+    /** @var ResponseSchema[] Array of ResourceSchemas used by this relationship indexed by class */
+    private $schemasByClass;
+
+    /** @var ResponseSchema[] Array of ResourceSchemas used by this relationship indexed by type */
+    private $schemasByType;
 
     /** @var bool Specifies if relationship is to be included in the document */
     private $included;
 
     /**
-     * SchemaRelationship constructor.
+     * ResponseSchemaRelationship constructor.
      * @param string $key           Specifies the relationship key
      * @param string $cardinality   Specifies relationship cardinality (to-One or to-Many)
      * @param bool $included        Specifies if this relationship is to be included in the document.
@@ -56,17 +59,17 @@ class SchemaRelationship
         $this->key = $key;
         $this->cardinality = $cardinality;
         $this->included = $included;
-        $this->schemas = [];
+        $this->schemasByClass = [];
     }
 
     /**
-     * Construct a SchemaRelationship from an array compatible
+     * Construct a ResponseSchemaRelationship from an array compatible
      * with relationship builder specifications
      * @param array $relationshipSpecifications
-     * @return SchemaRelationship
+     * @return ResponseSchemaRelationship
      * @throws InvalidSpecificationException
      */
-    public static function fromArray(array $relationshipSpecifications): SchemaRelationship
+    public static function fromArray(array $relationshipSpecifications): ResponseSchemaRelationship
     {
         if(!isset($relationshipSpecifications['key'])) {
             throw new InvalidSpecificationException("Index 'key' is required.");
@@ -78,14 +81,14 @@ class SchemaRelationship
 
         $included = isset($relationshipSpecifications['included']) ? $relationshipSpecifications['included'] : false;
 
-        // Create a new instance of SchemaRelationship
+        // Create a new instance of ResponseSchemaRelationship
         $instance = new self($relationshipSpecifications['key'], $relationshipSpecifications['cardinality'], $included);
 
         // Create schemas
         if(isset($relationshipSpecifications['schemas']) && is_array($relationshipSpecifications['schemas'])) {
             $resourceSchemas = $relationshipSpecifications['schemas'];
 
-            // Create a ResourceSchema for each spec given
+            // Create a ResponseSchema for each spec given
             foreach($resourceSchemas as $resourceSchema) {
                 $instance->addSchema($resourceSchema);
             }
@@ -114,14 +117,14 @@ class SchemaRelationship
     }
 
     /**
-     * Returns the ResourceSchema bindable with the given FQCN
+     * Returns the ResponseSchema bindable with the given FQCN
      * @param string $class
-     * @return null|ResourceSchema
+     * @return null|ResponseSchema
      */
-    public function getSchema(string $class): ?ResourceSchema
+    public function getSchemaByClassName(string $class): ?ResponseSchema
     {
-        if(isset($this->schemas[$class])) {
-            return $this->schemas[$class];
+        if(isset($this->schemasByClass[$class])) {
+            return $this->schemasByClass[$class];
         }
 
         return null;
@@ -129,26 +132,36 @@ class SchemaRelationship
 
     /**
      * Adds a schema to this relationship
-     * If a schema in the array with the same binding FQCN exists, it will be replaced.
-     * @param ResourceSchema|array $schema  If argument is an array, it must be compatible with
-     *                                      the ResourceSchema builder specifications
+     * If a schema in the array with the same binding FQCN or type exists, it will be replaced.
+     * @param ResponseSchema|array $schema  If argument is an array, it must be compatible with
+     *                                      the ResponseSchema builder specifications
      * @throws InvalidArgumentException
      */
     public function addSchema($schema): void
     {
-        if($schema instanceof ResourceSchema) {
-            $this->schemas[$schema->getClass()] = $schema;
-        } else if(is_array($schema)) {
-            // Create a ResourceSchema from compatible specifications array
-            $schema = ResourceSchema::fromArray($schema);
-
-            // Add schema to the schemas array with the bind class as index
-            $this->schemas[$schema->getClass()] = $schema;
-        } else {
-            // Must be a ResourceSchema instance or a compatible array
-            throw InvalidArgumentException::fromSchemaRelationshipAddSchema();
+        if(!$schema instanceof ResponseSchema) {
+            if(is_array($schema)) {
+                // Create a ResponseSchema from compatible specifications array
+                $schema = ResponseSchema::fromArray($schema);
+            } else {
+                // Must be a ResponseSchema instance or a compatible array
+                throw InvalidArgumentException::fromSchemaRelationshipAddSchema();
+            }
         }
-        $this->schemas[] = $schema;
+
+        // Add schema to the schemas array with the bind class as index
+        $this->schemasByClass[$schema->getClass()] = $schema;
+
+        // If schema with type already exists
+        if(isset($this->schemasByType[$schema->getType()])) {
+            $oldSchema = $this->schemasByType[$schema->getType()];
+
+            // If old schema class is not equal to the new schema class
+            if($oldSchema->getClass() != $schema->getClass()) {
+                // Remove oldSchema from schemas indexed by class
+                unset($this->schemasByClass[$oldSchema->getClass()]);
+            }
+        }
     }
 
     /**

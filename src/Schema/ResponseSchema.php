@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResourceSchema
+class ResponseSchema
 {
     /** @var string Specifies the resource type */
     private $type;
@@ -30,17 +30,17 @@ class ResourceSchema
     /** @var string Specifies the FQCN of the object to bind this schema */
     private $class;
 
-    /** @var SchemaAttribute[] Attributes of this schema */
+    /** @var ResponseSchemaAttribute[] Attributes of this schema */
     private $attributes;
 
-    /** @var SchemaRelationship[] Relationships of this schema */
+    /** @var ResponseSchemaRelationship[] Relationships of this schema */
     private $relationships;
 
     /** @var string The property name of the object's identifier*/
     private $identifierPropertyName;
 
     /**
-     * ResourceSchema constructor.
+     * ResponseSchema constructor.
      * @param string $type      The resource type.
      * @param string $class     The FQCN of the object to bind this schema to
      */
@@ -56,13 +56,13 @@ class ResourceSchema
     }
 
     /**
-     * Construct a ResourceSchema from an array compatible
-     * with ResourceSchema builder specifications
+     * Construct a ResponseSchema from an array compatible
+     * with ResponseSchema builder specifications
      * @param array $resourceSpecifications
-     * @return ResourceSchema
+     * @return ResponseSchema
      * @throws InvalidSpecificationException
      */
-    public static function fromArray(array $resourceSpecifications): ResourceSchema
+    public static function fromArray(array $resourceSpecifications): ResponseSchema
     {
         // Resource type is required
         if(!isset($resourceSpecifications['type'])) {
@@ -74,7 +74,7 @@ class ResourceSchema
             throw new InvalidSpecificationException("Index 'class' is required.");
         }
 
-        // Create a new instance of ResourceSchema
+        // Create a new instance of ResponseSchema
         $instance = new self($resourceSpecifications['type'], $resourceSpecifications['class']);
 
         // Create attributes
@@ -121,7 +121,7 @@ class ResourceSchema
 
     /**
      * Gets the attributes of this schema
-     * @return SchemaAttribute[]
+     * @return ResponseSchemaAttribute[]
      */
     public function getAttributes(): array
     {
@@ -129,23 +129,23 @@ class ResourceSchema
     }
 
     /**
-     * Add a SchemaAttribute to the ResourceSchema.
+     * Add a ResponseSchemaAttribute to the ResponseSchema.
      * If an attribute in the array with the same key exists, it will be replaced.
-     * @param SchemaAttribute|array $attribute  If argument is an array, it must be compatible
-     *                                          with the SchemaAttribute builder specifications.
+     * @param ResponseSchemaAttribute|array $attribute  If argument is an array, it must be compatible
+     *                                          with the ResponseSchemaAttribute builder specifications.
      * @throws InvalidArgumentException
      */
     public function addAttribute($attribute): void
     {
-        if($attribute instanceof SchemaAttribute) {
+        if($attribute instanceof ResponseSchemaAttribute) {
             $this->attributes[$attribute->getKey()] = $attribute;
         } else if(is_array($attribute)) {
-            $attribute = SchemaAttribute::fromArray($attribute);
+            $attribute = ResponseSchemaAttribute::fromArray($attribute);
 
             // Add to the attributes array with the key as index.
             $this->attributes[$attribute->getKey()] = $attribute;
         } else {
-            // Must be a SchemaAttribute instance or a compatible array
+            // Must be a ResponseSchemaAttribute instance or a compatible array
             throw InvalidArgumentException::fromResourceSchemaAddAttribute();
         }
     }
@@ -161,7 +161,7 @@ class ResourceSchema
 
     /**
      * Gets the relationships of this schema
-     * @return SchemaRelationship[]
+     * @return ResponseSchemaRelationship[]
      */
     public function getRelationships(): array
     {
@@ -169,23 +169,23 @@ class ResourceSchema
     }
 
     /**
-     * Adds a SchemaRelationship to the ResourceSchema.
+     * Adds a ResponseSchemaRelationship to the ResponseSchema.
      * If a relationship in the array with the same key exists, it will be replaced.
-     * @param SchemaRelationship|array $relationship    If argument is an array, it must be compatible with
-     *                                                  the SchemaRelationship builder specifications
+     * @param ResponseSchemaRelationship|array $relationship    If argument is an array, it must be compatible with
+     *                                                  the ResponseSchemaRelationship builder specifications
      * @throws InvalidArgumentException
      */
     public function addRelationship($relationship): void
     {
-        if($relationship instanceof SchemaRelationship) {
+        if($relationship instanceof ResponseSchemaRelationship) {
             $this->relationships[$relationship->getKey()] = $relationship;
         } else if(is_array($relationship)) {
-            $relationship = SchemaRelationship::fromArray($relationship);
+            $relationship = ResponseSchemaRelationship::fromArray($relationship);
 
             // Add to the relationships array with the key as index.
             $this->relationships[$relationship->getKey()] = $relationship;
         } else {
-            // Must be a SchemaRelationship instance or a compatible array
+            // Must be a ResponseSchemaRelationship instance or a compatible array
             throw InvalidArgumentException::fromResourceSchemaAddRelationship();
         }
     }

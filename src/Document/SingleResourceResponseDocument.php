@@ -20,10 +20,10 @@ namespace Vallarj\JsonApi\Document;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\SchemaAttribute;
-use Vallarj\JsonApi\Schema\SchemaRelationship;
+use Vallarj\JsonApi\Schema\ResponseSchemaAttribute;
+use Vallarj\JsonApi\Schema\ResponseSchemaRelationship;
 
-class SingleResourceDocument extends AbstractDocument
+class SingleResourceResponseDocument extends AbstractResponseDocument
 {
     /** @var object The object bound to the document */
     private $boundObject;
@@ -38,7 +38,7 @@ class SingleResourceDocument extends AbstractDocument
         if(is_object($object)) {
             $this->boundObject = $object;
         } else {
-            throw InvalidArgumentException::fromSingleResourceDocumentBind();
+            throw InvalidArgumentException::fromSingleResourceResponseDocumentBind();
         }
     }
 
@@ -53,7 +53,7 @@ class SingleResourceDocument extends AbstractDocument
             return [];
         }
 
-        // Find a compatible ResourceSchema for the bound object.
+        // Find a compatible ResponseSchema for the bound object.
         $resourceSchema = $this->getResourceSchema(get_class($this->boundObject));
 
         // Return empty array if no resource schema found
@@ -103,7 +103,7 @@ class SingleResourceDocument extends AbstractDocument
 
     /**
      * Extract the attributes into an array using the specified SchemaAttributes
-     * @param SchemaAttribute[] $schemaAttributes
+     * @param ResponseSchemaAttribute[] $schemaAttributes
      * @param $object
      * @return array
      */
@@ -121,7 +121,7 @@ class SingleResourceDocument extends AbstractDocument
 
     /**
      * Extract the relationships and included resources into an array using the specified SchemaRelationships
-     * @param SchemaRelationship[] $schemaRelationships
+     * @param ResponseSchemaRelationship[] $schemaRelationships
      * @param $object
      * @return array
      */
@@ -136,7 +136,7 @@ class SingleResourceDocument extends AbstractDocument
             $relationshipObject = $object->{'get' . ucfirst($key)}();
 
             // If a To-One relationship
-            if($schemaRelationship->getCardinality() === SchemaRelationship::TO_ONE) {
+            if($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_ONE) {
                 // if relationshipObject is null, set relationship data as null
                 if(is_null($relationshipObject)) {
                     $relationships[$key] = [
@@ -146,8 +146,8 @@ class SingleResourceDocument extends AbstractDocument
                     continue;
                 }
 
-                // Get the compatible ResourceSchema for this object
-                $schema = $schemaRelationship->getSchema(get_class($relationshipObject));
+                // Get the compatible ResponseSchema for this object
+                $schema = $schemaRelationship->getSchemaByClassName(get_class($relationshipObject));
 
                 if(!is_null($schema)) {
                     // Get the type and ID of the relationship
@@ -165,19 +165,32 @@ class SingleResourceDocument extends AbstractDocument
                     // If relationship is included
                     if($schemaRelationship->isIncluded()) {
                         $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
+                        $relRelationships = $this->extractRelationships($schema->getRelationships(),
+                            $relationshipObject);
 
                         $included[$relType][$relId] = [
                             "type" => $relType,
                             "id" => $relId,
-                            "attributes" => $relAttributes
+                            "attributes" => $relAttributes,
                         ];
+
+                        if(isset($included[$relType][$relId]["relationships"])) {
+                            $included[$relType][$relId]["relationships"] =
+                                array_replace_recursive($included[$relType][$relId]["relationships"],
+                                    $relRelationships['relationships']);
+                        } else {
+                            $included[$relType][$relId]["relationships"] = $relRelationships["relationships"] ?? [];
+                        }
+
+                        // Merge (replace recursively) included
+                        $included = array_replace_recursive($included, $relRelationships['included']);
                     }
                 }
-            } else if($schemaRelationship->getCardinality() === SchemaRelationship::TO_MANY) {
+            } else if($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_MANY) {
                 // Relationship object is assumed to be an array
                 foreach($relationshipObject as $item) {
-                    // Get the compatible ResourceSchema for this item
-                    $schema = $schemaRelationship->getSchema(get_class($item));
+                    // Get the compatible ResponseSchema for this item
+                    $schema = $schemaRelationship->getSchemaByClassName(get_class($item));
 
                     // Continue if no compatible schema
                     if(!$schema) {

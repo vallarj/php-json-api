@@ -23,45 +23,45 @@ class InvalidArgumentException extends \InvalidArgumentException
 {
     public static function fromAbstractDocumentAddRelationship()
     {
-        return new self("Argument must be an instance of ResourceSchema or an array compatible " .
-            "with ResourceSchema builder specifications");
+        return new self("Argument must be an instance of ResponseSchema or an array compatible " .
+            "with ResponseSchema builder specifications");
     }
 
     /**
      * Thrown when adding an invalid type of argument to the addAttribute method
-     * of ResourceSchema class
+     * of ResponseSchema class
      * @return InvalidArgumentException
      */
     public static function fromResourceSchemaAddAttribute()
     {
-        return new self("Argument must be an instance of SchemaAttribute or an array compatible " .
+        return new self("Argument must be an instance of ResponseSchemaAttribute or an array compatible " .
             "with schema attribute builder specifications");
     }
 
     /**
      * Thrown when adding an invalid type of argument to the addRelationship method
-     * of ResourceSchema class
+     * of ResponseSchema class
      * @return InvalidArgumentException
      */
     public static function fromResourceSchemaAddRelationship()
     {
-        return new self("Argument must be an instance of SchemaRelationship or an array " .
+        return new self("Argument must be an instance of ResponseSchemaRelationship or an array " .
             "compatible with schema relationship builder specifications");
     }
 
     public static function fromSchemaRelationshipConstructor()
     {
         return new self("Argument 'cardinality' must be one of" .
-            "SchemaRelationship::TO_ONE or SchemaRelationship::TO_MANY");
+            "ResponseSchemaRelationship::TO_ONE or ResponseSchemaRelationship::TO_MANY");
     }
 
     public static function fromSchemaRelationshipAddSchema()
     {
-        return new self("Argument must be an instance of ResourceSchema or an array compatible " .
-            "with ResourceSchema builder specifications");
+        return new self("Argument must be an instance of ResponseSchema or an array compatible " .
+            "with ResponseSchema builder specifications");
     }
 
-    public static function fromSingleResourceDocumentBind()
+    public static function fromSingleResourceResponseDocumentBind()
     {
         return new self("Argument must be an object.");
     }
