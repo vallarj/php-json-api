@@ -21,6 +21,8 @@ namespace Vallarj\JsonApi\Document;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\ResponseSchema;
+use Vallarj\JsonApi\Schema\ResponseSchemaAttribute;
+use Vallarj\JsonApi\Schema\ResponseSchemaRelationship;
 
 abstract class AbstractResponseDocument
 {
@@ -39,13 +41,23 @@ abstract class AbstractResponseDocument
     }
 
     /**
+     * Checks if the document has a registered schema for a given class
+     * @param string $class
+     * @return bool
+     */
+    public function hasPrimarySchema(string $class): bool
+    {
+        return isset($this->primarySchemas[$class]);
+    }
+
+    /**
      * Returns a ResponseSchema from the array of primary resource ResponseSchemas for the given class
      * @param string $class
      * @return null|ResponseSchema
      */
     public function getPrimarySchema(string $class): ?ResponseSchema
     {
-        if(isset($this->primarySchemas[$class])) {
+        if($this->hasPrimarySchema($class)) {
             return $this->primarySchemas[$class];
         }
 

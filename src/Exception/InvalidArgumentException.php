@@ -65,4 +65,9 @@ class InvalidArgumentException extends \InvalidArgumentException
     {
         return new self("Argument must be an object.");
     }
+
+    public static function fromResourceCollectionResponseDocumentAddResource()
+    {
+        return new self("Argument must be an object.");
+    }
 }
