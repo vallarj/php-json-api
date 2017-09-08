@@ -64,7 +64,8 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
         $attributes = $this->extractAttributes($resourceSchema->getAttributes(), $this->boundObject);
 
         // Extract relationships
-        $relationships = $this->extractRelationships($resourceSchema->getRelationships(), $this->boundObject);
+        list($relationships, $included) = $this->extractRelationships(
+            $resourceSchema->getRelationships(), $this->boundObject);
 
         // Build the return object
 
@@ -75,17 +76,15 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
         ];
 
         // Include relationships if not empty
-        if(!empty($relationships['relationships'])) {
-            $data['relationships'] = $relationships['relationships'];
+        if(!empty($relationships)) {
+            $data['relationships'] = $relationships;
         }
 
         $root = [
             "data" => $data
         ];
 
-        if(!empty($relationships['included'])) {
-            $included = $relationships['included'];
-
+        if(!empty($included)) {
             // For each included item, disassemble the array
             foreach($included as $items) {
                 // First level: relationship types
@@ -122,14 +121,13 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
      * Extract the relationships and included resources into an array using the specified SchemaRelationships
      * @param ResponseSchemaRelationship[] $schemaRelationships
      * @param $object
+     * @param &array[] $included    Two-dimensional array with relationship key as row index and relationship
+     *                              id as column index
      * @return array
      */
-    private function extractRelationships(array $schemaRelationships, $object): array
+    private function extractRelationships(array $schemaRelationships, $object, array &$included = []): array
     {
         $relationships = [];
-
-        // A 2d array with relationship key as row index and relationship id as column index
-        $included = [];
 
         foreach($schemaRelationships as $schemaRelationship) {
             $key = $schemaRelationship->getKey();
@@ -203,10 +201,7 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
             }
         }
 
-        return [
-            "relationships" => $relationships,
-            "included" => $included
-        ];
+        return [ $relationships, $included ];
     }
 
     /**
@@ -217,15 +212,15 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
      * @param mixed $relId      Specifies the resource ID
      * @return array The modified array with the newly added resource
      */
-    private function includeRelationship($relationshipObject, array $included, string $relType, $relId): array
+    private function includeRelationship($relationshipObject, array &$included, string $relType, $relId): array
     {
         // Get schema from included schemas
         $schema = $this->getIncludedSchema(get_class($relationshipObject));
 
         if (!is_null($schema)) {
             $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
-            $relRelationships = $this->extractRelationships($schema->getRelationships(),
-                $relationshipObject);
+            list($relationships, $included) = $this->extractRelationships($schema->getRelationships(),
+                $relationshipObject, $included);
 
             // Include only once
             if (!isset($included[$relType][$relId])) {
@@ -235,13 +230,10 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
                     "attributes" => $relAttributes,
                 ];
 
-                if (!empty($relRelationships['relationships'])) {
-                    $included[$relType][$relId]['relationships'] = $relRelationships['relationships'];
+                if (!empty($relationships)) {
+                    $included[$relType][$relId]['relationships'] = $relationships;
                 }
             }
-
-            // Merge (replace recursively) included
-            $included = array_replace_recursive($included, $relRelationships['included']);
         }
         return $included;
     }
