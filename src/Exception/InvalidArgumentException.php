@@ -21,7 +21,7 @@ namespace Vallarj\JsonApi\Exception;
 
 class InvalidArgumentException extends \InvalidArgumentException
 {
-    public static function fromAbstractDocumentAddRelationship()
+    public static function fromAbstractResponseDocumentAddSchema()
     {
         return new self("Argument must be an instance of ResponseSchema or an array compatible " .
             "with ResponseSchema builder specifications");
@@ -32,7 +32,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      * of ResponseSchema class
      * @return InvalidArgumentException
      */
-    public static function fromResourceSchemaAddAttribute()
+    public static function fromResponseSchemaAddAttribute()
     {
         return new self("Argument must be an instance of ResponseSchemaAttribute or an array compatible " .
             "with schema attribute builder specifications");
@@ -43,22 +43,22 @@ class InvalidArgumentException extends \InvalidArgumentException
      * of ResponseSchema class
      * @return InvalidArgumentException
      */
-    public static function fromResourceSchemaAddRelationship()
+    public static function fromResponseSchemaAddRelationship()
     {
         return new self("Argument must be an instance of ResponseSchemaRelationship or an array " .
             "compatible with schema relationship builder specifications");
     }
 
-    public static function fromSchemaRelationshipConstructor()
+    public static function fromResponseSchemaRelationshipConstructor()
     {
         return new self("Argument 'cardinality' must be one of" .
             "ResponseSchemaRelationship::TO_ONE or ResponseSchemaRelationship::TO_MANY");
     }
 
-    public static function fromSchemaRelationshipAddSchema()
+    public static function fromResponseSchemaRelationshipAddExpectedResource()
     {
-        return new self("Argument must be an instance of ResponseSchema or an array compatible " .
-            "with ResponseSchema builder specifications");
+        return new self("Argument must be an instance of ResourceIdentifierSchema or an array compatible " .
+            "with ResourceIdentifierSchema builder specifications");
     }
 
     public static function fromSingleResourceResponseDocumentBind()

@@ -22,22 +22,13 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResponseSchema
+class ResponseSchema extends ResourceIdentifierSchema
 {
-    /** @var string Specifies the resource type */
-    private $type;
-
-    /** @var string Specifies the FQCN of the object to bind this schema */
-    private $class;
-
     /** @var ResponseSchemaAttribute[] Attributes of this schema */
     private $attributes;
 
     /** @var ResponseSchemaRelationship[] Relationships of this schema */
     private $relationships;
-
-    /** @var string The property name of the object's identifier*/
-    private $identifierPropertyName;
 
     /**
      * ResponseSchema constructor.
@@ -46,13 +37,10 @@ class ResponseSchema
      */
     function __construct(string $type, string $class)
     {
-        $this->type = $type;
-        $this->class = $class;
+        parent::__construct($type, $class);
+
         $this->attributes = [];
         $this->relationships = [];
-
-        // Set defaults
-        $this->identifierPropertyName = 'id';
     }
 
     /**
@@ -62,7 +50,7 @@ class ResponseSchema
      * @return ResponseSchema
      * @throws InvalidSpecificationException
      */
-    public static function fromArray(array $resourceSpecifications): ResponseSchema
+    public static function fromArray(array $resourceSpecifications)
     {
         // Resource type is required
         if(!isset($resourceSpecifications['type'])) {
@@ -75,7 +63,7 @@ class ResponseSchema
         }
 
         // Create a new instance of ResponseSchema
-        $instance = new self($resourceSpecifications['type'], $resourceSpecifications['class']);
+        $instance = new static($resourceSpecifications['type'], $resourceSpecifications['class']);
 
         // Create attributes
         if(isset($resourceSpecifications['attributes']) && is_array($resourceSpecifications['attributes'])) {
@@ -99,24 +87,6 @@ class ResponseSchema
 
         // Return the instance
         return $instance;
-    }
-
-    /**
-     * Gets the type of the resource.
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * Gets the FQCN of the object bindable to this schema
-     * @return string
-     */
-    public function getClass(): string
-    {
-        return $this->class;
     }
 
     /**
@@ -146,17 +116,8 @@ class ResponseSchema
             $this->attributes[$attribute->getKey()] = $attribute;
         } else {
             // Must be a ResponseSchemaAttribute instance or a compatible array
-            throw InvalidArgumentException::fromResourceSchemaAddAttribute();
+            throw InvalidArgumentException::fromResponseSchemaAddAttribute();
         }
-    }
-
-    /**
-     * Gets the identifier property name of the object to bind
-     * @return string
-     */
-    public function getIdentifierPropertyName(): string
-    {
-        return $this->identifierPropertyName;
     }
 
     /**
@@ -186,7 +147,7 @@ class ResponseSchema
             $this->relationships[$relationship->getKey()] = $relationship;
         } else {
             // Must be a ResponseSchemaRelationship instance or a compatible array
-            throw InvalidArgumentException::fromResourceSchemaAddRelationship();
+            throw InvalidArgumentException::fromResponseSchemaAddRelationship();
         }
     }
 }

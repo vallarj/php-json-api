@@ -33,14 +33,11 @@ class ResponseSchemaRelationship
     /** @var string Specifies relationship cardinality */
     private $cardinality;
 
-    /** @var ResponseSchema[] Array of ResourceSchemas used by this relationship indexed by class */
-    private $schemasByClass;
-
-    /** @var ResponseSchema[] Array of ResourceSchemas used by this relationship indexed by type */
-    private $schemasByType;
-
     /** @var bool Specifies if relationship is to be included in the document */
     private $included;
+
+    /** @var ResourceIdentifierSchema[] Array of ResourceIdentifierSchema for each expected class */
+    private $expectedResources;
 
     /**
      * ResponseSchemaRelationship constructor.
@@ -53,13 +50,13 @@ class ResponseSchemaRelationship
     function __construct(string $key, string $cardinality, bool $included = false)
     {
         if($cardinality != self::TO_ONE && $cardinality != self::TO_MANY) {
-            throw InvalidArgumentException::fromSchemaRelationshipConstructor();
+            throw InvalidArgumentException::fromResponseSchemaRelationshipConstructor();
         }
 
         $this->key = $key;
         $this->cardinality = $cardinality;
         $this->included = $included;
-        $this->schemasByClass = [];
+        $this->expectedResources = [];
     }
 
     /**
@@ -84,13 +81,15 @@ class ResponseSchemaRelationship
         // Create a new instance of ResponseSchemaRelationship
         $instance = new self($relationshipSpecifications['key'], $relationshipSpecifications['cardinality'], $included);
 
-        // Create schemas
-        if(isset($relationshipSpecifications['schemas']) && is_array($relationshipSpecifications['schemas'])) {
-            $resourceSchemas = $relationshipSpecifications['schemas'];
+        if(isset($relationshipSpecifications['expects'])) {
+            $expects = $relationshipSpecifications['expects'];
 
-            // Create a ResponseSchema for each spec given
-            foreach($resourceSchemas as $resourceSchema) {
-                $instance->addSchema($resourceSchema);
+            if(!is_array($expects)) {
+                throw new InvalidSpecificationException("Index 'expects' must be an array.");
+            }
+
+            foreach($expects as $resourceIdentifier) {
+                $instance->addExpectedResource($resourceIdentifier);
             }
         }
 
@@ -117,54 +116,6 @@ class ResponseSchemaRelationship
     }
 
     /**
-     * Returns the ResponseSchema bindable with the given FQCN
-     * @param string $class
-     * @return null|ResponseSchema
-     */
-    public function getSchemaByClassName(string $class): ?ResponseSchema
-    {
-        if(isset($this->schemasByClass[$class])) {
-            return $this->schemasByClass[$class];
-        }
-
-        return null;
-    }
-
-    /**
-     * Adds a schema to this relationship
-     * If a schema in the array with the same binding FQCN or type exists, it will be replaced.
-     * @param ResponseSchema|array $schema  If argument is an array, it must be compatible with
-     *                                      the ResponseSchema builder specifications
-     * @throws InvalidArgumentException
-     */
-    public function addSchema($schema): void
-    {
-        if(!$schema instanceof ResponseSchema) {
-            if(is_array($schema)) {
-                // Create a ResponseSchema from compatible specifications array
-                $schema = ResponseSchema::fromArray($schema);
-            } else {
-                // Must be a ResponseSchema instance or a compatible array
-                throw InvalidArgumentException::fromSchemaRelationshipAddSchema();
-            }
-        }
-
-        // Add schema to the schemas array with the bind class as index
-        $this->schemasByClass[$schema->getClass()] = $schema;
-
-        // If schema with type already exists
-        if(isset($this->schemasByType[$schema->getType()])) {
-            $oldSchema = $this->schemasByType[$schema->getType()];
-
-            // If old schema class is not equal to the new schema class
-            if($oldSchema->getClass() != $schema->getClass()) {
-                // Remove oldSchema from schemas indexed by class
-                unset($this->schemasByClass[$oldSchema->getClass()]);
-            }
-        }
-    }
-
-    /**
      * Checks if this relationship is to be included in the document
      * @return bool
      */
@@ -177,8 +128,42 @@ class ResponseSchemaRelationship
      * Sets whether or not this relationship is going to be included in the document
      * @param bool $included
      */
-    public function setIncluded(bool $included)
+    public function setIncluded(bool $included): void
     {
         $this->included = $included;
+    }
+
+    /**
+     * Add a type mapping for the expected class name
+     * Replaces a class mapping if it already exists
+     * @param array|ResourceIdentifierSchema $resourceIdentifier
+     * @throws InvalidArgumentException
+     */
+    public function addExpectedResource($resourceIdentifier): void
+    {
+        if(!$resourceIdentifier instanceof ResourceIdentifierSchema) {
+            if(!is_array($resourceIdentifier)) {
+                throw InvalidArgumentException::fromResponseSchemaRelationshipAddExpectedResource();
+            }
+
+            $resourceIdentifier = ResourceIdentifierSchema::fromArray($resourceIdentifier);
+        }
+
+        $this->expectedResources[$resourceIdentifier->getClass()] = $resourceIdentifier;
+    }
+
+    /**
+     * Gets the mapped type by class name
+     * Returns null if class name was not found
+     * @param string $class
+     * @return null|ResourceIdentifierSchema
+     */
+    public function getExpectedResourceByClassName(string $class): ?ResourceIdentifierSchema
+    {
+        if(isset($this->expectedResources[$class])) {
+            return $this->expectedResources[$class];
+        }
+
+        return null;
     }
 }

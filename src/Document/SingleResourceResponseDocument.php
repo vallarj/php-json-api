@@ -54,7 +54,7 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
         }
 
         // Find a compatible ResponseSchema for the bound object.
-        $resourceSchema = $this->getResourceSchema(get_class($this->boundObject));
+        $resourceSchema = $this->getPrimarySchema(get_class($this->boundObject));
 
         // Return empty array if no resource schema found
         if(!$resourceSchema) {
@@ -88,9 +88,9 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
             $included = $relationships['included'];
 
             // For each included item, disassemble the array
-            foreach($included as $relType => $items) {
+            foreach($included as $items) {
                 // First level: relationship types
-                foreach($items as $id => $item) {
+                foreach($items as $item) {
                     // Second level: relationship ids
 
                     $root['included'][] = $item;
@@ -128,6 +128,7 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
     private function extractRelationships(array $schemaRelationships, $object): array
     {
         $relationships = [];
+
         // A 2d array with relationship key as row index and relationship id as column index
         $included = [];
 
@@ -139,20 +140,18 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
             if($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_ONE) {
                 // if relationshipObject is null, set relationship data as null
                 if(is_null($relationshipObject)) {
-                    $relationships[$key] = [
-                        "data" => null
-                    ];
-
+                    $relationships[$key] = [ "data" => null ];
                     continue;
                 }
 
-                // Get the compatible ResponseSchema for this object
-                $schema = $schemaRelationship->getSchemaByClassName(get_class($relationshipObject));
+                // Get the compatible ResourceIdentifierSchema for this object
+                $resourceIdentifier = $schemaRelationship->getExpectedResourceByClassName(
+                    get_class($relationshipObject));
 
-                if(!is_null($schema)) {
+                if(!is_null($resourceIdentifier)) {
                     // Get the type and ID of the relationship
-                    $relType = $schema->getType();
-                    $relId = $relationshipObject->{'get' . ucfirst($schema->getIdentifierPropertyName())}();
+                    $relType = $resourceIdentifier->getType();
+                    $relId = $relationshipObject->{'get' . ucfirst($resourceIdentifier->getIdentifierPropertyName())}();
 
                     // Add relationship into the relationships array
                     $relationships[$key] = [
@@ -164,29 +163,41 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
 
                     // If relationship is included
                     if($schemaRelationship->isIncluded()) {
-                        $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
-                        $relRelationships = $this->extractRelationships($schema->getRelationships(),
-                            $relationshipObject);
+                        // Get schema from included schemas
+                        $schema = $this->getIncludedSchema(get_class($relationshipObject));
 
-                        $included[$relType][$relId] = [
-                            "type" => $relType,
-                            "id" => $relId,
-                            "attributes" => $relAttributes,
-                        ];
+                        if(!is_null($schema)) {
+                            $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
+                            $relRelationships = $this->extractRelationships($schema->getRelationships(),
+                                $relationshipObject);
 
-                        if(isset($included[$relType][$relId]["relationships"])) {
-                            $included[$relType][$relId]["relationships"] =
-                                array_replace_recursive($included[$relType][$relId]["relationships"],
-                                    $relRelationships['relationships']);
-                        } else {
-                            $included[$relType][$relId]["relationships"] = $relRelationships["relationships"] ?? [];
+                            // Include only once
+                            if(!isset($included[$relType][$relId])) {
+                                $included[$relType][$relId] = [
+                                    "type" => $relType,
+                                    "id" => $relId,
+                                    "attributes" => $relAttributes,
+                                ];
+
+                                if(!empty($relRelationships['relationships'])) {
+                                    $included[$relType][$relId]['relationships'] = $relRelationships['relationships'];
+                                }
+                            }
+
+                            // Merge (replace recursively) included
+                            $included = array_replace_recursive($included, $relRelationships['included']);
                         }
-
-                        // Merge (replace recursively) included
-                        $included = array_replace_recursive($included, $relRelationships['included']);
                     }
+                } else {
+                    $relationships[$key] = [ "data" => null ];
+                    continue;
                 }
             } else if($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_MANY) {
+                if(empty($relationshipObject)) {
+                    $relationships[$key] = [ "data" => [] ];
+                    continue;
+                }
+
                 // Relationship object is assumed to be an array
                 foreach($relationshipObject as $item) {
                     // Get the compatible ResponseSchema for this item

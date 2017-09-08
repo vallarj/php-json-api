@@ -24,50 +24,90 @@ use Vallarj\JsonApi\Schema\ResponseSchema;
 
 abstract class AbstractResponseDocument
 {
-    /** @var ResponseSchema[] Array of ResourceSchemas used by the document */
-    private $resourceSchemas;
+    /** @var ResponseSchema[] Array of ResponseSchemas used by the document */
+    private $primarySchemas;
+
+    /** @var ResponseSchema[] Array of ResponseSchemas for included resources */
+    private $includedSchemas;
 
     /**
      * AbstractResponseDocument constructor.
      */
     function __construct()
     {
-        $this->resourceSchemas = [];
+        $this->primarySchemas = [];
     }
 
     /**
-     * Returns the ResponseSchema bindable with the given FQCN
+     * Returns a ResponseSchema from the array of primary resource ResponseSchemas for the given class
      * @param string $class
      * @return null|ResponseSchema
      */
-    public function getResourceSchema(string $class): ?ResponseSchema
+    public function getPrimarySchema(string $class): ?ResponseSchema
     {
-        if(isset($this->resourceSchemas[$class])) {
-            return $this->resourceSchemas[$class];
+        if(isset($this->primarySchemas[$class])) {
+            return $this->primarySchemas[$class];
         }
 
         return null;
     }
 
     /**
-     * Adds a ResponseSchema to the list of ResourceSchemas that the document can use
+     * Adds a ResponseSchema to the list of ResponseSchemas that the document can use to bind an object as a
+     * primary resource
      * If a schema in the array with the same class exists, it will be replaced.
-     * @param ResponseSchema|array $resourceSchema  If argument is an array, it must be compatible with
+     * @param ResponseSchema|array $primarySchema  If argument is an array, it must be compatible with
      *                                              the ResponseSchema builder specifications
      * @throws InvalidArgumentException
      */
-    public function addResourceSchema($resourceSchema): void
+    public function addPrimarySchema($primarySchema): void
     {
-        if($resourceSchema instanceof ResponseSchema) {
-            $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
-        } else if(is_array($resourceSchema)) {
-            $resourceSchema = ResponseSchema::fromArray($resourceSchema);
+        if($primarySchema instanceof ResponseSchema) {
+            $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
+        } else if(is_array($primarySchema)) {
+            $primarySchema = ResponseSchema::fromArray($primarySchema);
 
             // Add to the schemas array with the class as index
-            $this->resourceSchemas[$resourceSchema->getClass()] = $resourceSchema;
+            $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
         } else {
             // Must be a ResponseSchema instance or a compatible array
-            throw InvalidArgumentException::fromAbstractDocumentAddRelationship();
+            throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
+        }
+    }
+
+    /**
+     * Returns a ResponseSchema from the array of included resource ResponseSchemas for the given class
+     * @param string $class
+     * @return null|ResponseSchema
+     */
+    public function getIncludedSchema(string $class): ?ResponseSchema
+    {
+        if(isset($this->includedSchemas[$class])) {
+            return $this->includedSchemas[$class];
+        }
+
+        return null;
+    }
+
+    /**
+     * Adds a ResponseSchema to the list of ResponseSchemas that the document can use for resource inclusion
+     * If a schema in the array with the same class exists, it will be replaced.
+     * @param ResponseSchema|array $includedSchema  If argument is an array, it must be compatible with
+     *                                              the ResponseSchema builder specifications
+     * @throws InvalidArgumentException
+     */
+    public function addIncludedSchema($includedSchema): void
+    {
+        if($includedSchema instanceof ResponseSchema) {
+            $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
+        } else if(is_array($includedSchema)) {
+            $includedSchema = ResponseSchema::fromArray($includedSchema);
+
+            // Add to the schemas array with the class as index
+            $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
+        } else {
+            // Must be a ResponseSchema instance or a compatible array
+            throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
         }
     }
 }
