@@ -68,6 +68,10 @@ class ResourceIdentifierSchema
         // Create a new instance of ResponseSchema
         $instance = new static($resourceSpecifications['type'], $resourceSpecifications['class']);
 
+        if(isset($resourceSpecifications['identifier'])) {
+            $instance->identifierPropertyName = $resourceSpecifications['identifier'];
+        }
+
         // Return the instance
         return $instance;
     }
@@ -88,6 +92,15 @@ class ResourceIdentifierSchema
     public function getClass(): string
     {
         return $this->class;
+    }
+
+    /**
+     * Sets the identifier property name of the object to bind
+     * @param string $name
+     */
+    public function setIdentifierPropertyName(string $name)
+    {
+        $this->identifierPropertyName = $name;
     }
 
     /**

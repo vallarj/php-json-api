@@ -85,6 +85,10 @@ class ResponseSchema extends ResourceIdentifierSchema
             }
         }
 
+        if(isset($resourceSpecifications['identifier'])) {
+            $instance->setIdentifierPropertyName($resourceSpecifications['identifier']);
+        }
+
         // Return the instance
         return $instance;
     }

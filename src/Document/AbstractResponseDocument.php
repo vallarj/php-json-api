@@ -110,4 +110,10 @@ abstract class AbstractResponseDocument
             throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
         }
     }
+
+    /**
+     * Gets a JSON API equivalent array
+     * @return array
+     */
+    abstract public function getData(): array;
 }

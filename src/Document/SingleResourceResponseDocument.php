@@ -43,8 +43,7 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
     }
 
     /**
-     * Gets a JSON API equivalent array
-     * @return array
+     * @inheritdoc
      */
     public function getData(): array
     {
