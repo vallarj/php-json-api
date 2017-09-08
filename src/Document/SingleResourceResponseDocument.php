@@ -163,30 +163,7 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
 
                     // If relationship is included
                     if($schemaRelationship->isIncluded()) {
-                        // Get schema from included schemas
-                        $schema = $this->getIncludedSchema(get_class($relationshipObject));
-
-                        if(!is_null($schema)) {
-                            $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
-                            $relRelationships = $this->extractRelationships($schema->getRelationships(),
-                                $relationshipObject);
-
-                            // Include only once
-                            if(!isset($included[$relType][$relId])) {
-                                $included[$relType][$relId] = [
-                                    "type" => $relType,
-                                    "id" => $relId,
-                                    "attributes" => $relAttributes,
-                                ];
-
-                                if(!empty($relRelationships['relationships'])) {
-                                    $included[$relType][$relId]['relationships'] = $relRelationships['relationships'];
-                                }
-                            }
-
-                            // Merge (replace recursively) included
-                            $included = array_replace_recursive($included, $relRelationships['included']);
-                        }
+                        $included = $this->includeRelationship($relationshipObject, $included, $relType, $relId);
                     }
                 } else {
                     $relationships[$key] = [ "data" => null ];
@@ -200,20 +177,29 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
 
                 // Relationship object is assumed to be an array
                 foreach($relationshipObject as $item) {
-                    // Get the compatible ResponseSchema for this item
-                    $schema = $schemaRelationship->getSchemaByClassName(get_class($item));
+                    // Get the compatible ResourceIdentifierSchema for this object
+                    $resourceIdentifier = $schemaRelationship->getExpectedResourceByClassName(
+                        get_class($item));
 
-                    // Continue if no compatible schema
-                    if(!$schema) {
+                    if(!is_null($resourceIdentifier)) {
+                        // Get the type and ID of the relationship
+                        $relType = $resourceIdentifier->getType();
+                        $relId = $item->{'get' . ucfirst($resourceIdentifier->getIdentifierPropertyName())}();
+
+                        // Add relationship into the relationships array
+                        $relationships[$key]['data'][] = [
+                            "type" => $relType,
+                            "id" => $relId
+                        ];
+
+                        // If relationship is included
+                        if($schemaRelationship->isIncluded()) {
+                            $included = $this->includeRelationship($item, $included, $relType, $relId);
+                        }
+                    } else {
+                        $relationships[$key] = [ "data" => [] ];
                         continue;
                     }
-
-                    $relationships[$key][] = [
-                        "data" => [
-                            "type" => $schema->getType(),
-                            "id" => $item->{'get' . ucfirst($schema->getIdentifierPropertyName())}()
-                        ],
-                    ];
                 }
             }
         }
@@ -222,5 +208,42 @@ class SingleResourceResponseDocument extends AbstractResponseDocument
             "relationships" => $relationships,
             "included" => $included
         ];
+    }
+
+    /**
+     * Add the relationship resource into the included array.
+     * @param $relationshipObject
+     * @param array $included   The source included array
+     * @param string $relType   Specifies the resource type
+     * @param mixed $relId      Specifies the resource ID
+     * @return array The modified array with the newly added resource
+     */
+    private function includeRelationship($relationshipObject, array $included, string $relType, $relId): array
+    {
+        // Get schema from included schemas
+        $schema = $this->getIncludedSchema(get_class($relationshipObject));
+
+        if (!is_null($schema)) {
+            $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
+            $relRelationships = $this->extractRelationships($schema->getRelationships(),
+                $relationshipObject);
+
+            // Include only once
+            if (!isset($included[$relType][$relId])) {
+                $included[$relType][$relId] = [
+                    "type" => $relType,
+                    "id" => $relId,
+                    "attributes" => $relAttributes,
+                ];
+
+                if (!empty($relRelationships['relationships'])) {
+                    $included[$relType][$relId]['relationships'] = $relRelationships['relationships'];
+                }
+            }
+
+            // Merge (replace recursively) included
+            $included = array_replace_recursive($included, $relRelationships['included']);
+        }
+        return $included;
     }
 }
