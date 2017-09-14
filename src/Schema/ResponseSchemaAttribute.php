@@ -60,4 +60,14 @@ class ResponseSchemaAttribute
     {
         return $this->key;
     }
+
+    /**
+     * Returns the value of the attribute
+     * @param $parentObject
+     * @return mixed    The value of the attribute
+     */
+    public function getAttribute($parentObject)
+    {
+        return $parentObject->{'get' . ucfirst($this->key)}();
+    }
 }

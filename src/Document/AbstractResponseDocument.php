@@ -57,11 +57,7 @@ abstract class AbstractResponseDocument
      */
     public function getPrimarySchema(string $class): ?ResponseSchema
     {
-        if($this->hasPrimarySchema($class)) {
-            return $this->primarySchemas[$class];
-        }
-
-        return null;
+        return $this->primarySchemas[$class] ?? null;
     }
 
     /**
@@ -88,17 +84,23 @@ abstract class AbstractResponseDocument
     }
 
     /**
+     * Checks if the document has a registered schema for a given included resource object class
+     * @param string $class
+     * @return bool
+     */
+    public function hasIncludedSchema(string $class): bool
+    {
+        return isset($this->includedSchemas[$class]);
+    }
+
+    /**
      * Returns a ResponseSchema from the array of included resource ResponseSchemas for the given class
      * @param string $class
      * @return null|ResponseSchema
      */
     public function getIncludedSchema(string $class): ?ResponseSchema
     {
-        if(isset($this->includedSchemas[$class])) {
-            return $this->includedSchemas[$class];
-        }
-
-        return null;
+        return $this->includedSchemas[$class] ?? null;
     }
 
     /**
@@ -132,28 +134,40 @@ abstract class AbstractResponseDocument
     /**
      * Extract the "data" and "included" document components for a single resource.
      * @param $boundObject
-     * @param array $included
+     * @param array &$included
      * @return array
      */
-    final protected function extractDocumentComponents(
-        $boundObject,
-        array &$included = []
-    ): array
+    final protected function extractDocumentComponents($boundObject, array &$included = []): array
     {
         // Find a compatible ResponseSchema for the bound object.
         $resourceSchema = $this->getPrimarySchema(get_class($boundObject));
 
+        $data = $this->extractResource($boundObject, $resourceSchema);
+
+        // Extract included
+        $included = $this->extractIncluded($boundObject, $resourceSchema, $included);
+
+        return array($data, $included);
+    }
+
+    /**
+     * Extract resource from a given object and equivalent ResponseSchema
+     * @param $object
+     * @param ResponseSchema $resourceSchema
+     * @return array
+     */
+    private function extractResource($object, ResponseSchema $resourceSchema)
+    {
         // Extract attributes
-        $attributes = $this->extractAttributes($resourceSchema->getAttributes(), $boundObject);
+        $attributes = $resourceSchema->getAttributes($object);
 
         // Extract relationships
-        list($relationships, $included) = $this->extractRelationships(
-            $resourceSchema->getRelationships(), $boundObject, $included);
+        $relationships = $resourceSchema->getRelationships($object);
 
         // Build the return data
         $data = [
-            "type" => $resourceSchema->getType(),
-            "id" => $boundObject->{'get' . ucfirst($resourceSchema->getIdentifierPropertyName())}(),
+            "type" => $resourceSchema->getResourceType(),
+            "id" => $resourceSchema->getResourceId($object),
             "attributes" => $attributes,
         ];
 
@@ -162,145 +176,42 @@ abstract class AbstractResponseDocument
             $data['relationships'] = $relationships;
         }
 
-        return array($data, $included);
+        return $data;
     }
 
     /**
-     * Extract the attributes into an array using the specified SchemaAttributes
-     * @param ResponseSchemaAttribute[] $schemaAttributes
+     * Extract included resources recursively from a given object, equivalent ResponseSchema and an
+     * existing two-dimensional included array indexed by resource type and resource ID
      * @param $object
+     * @param ResponseSchema $resourceSchema
+     * @param array $included
      * @return array
      */
-    private function extractAttributes(array $schemaAttributes, $object): array
+    private function extractIncluded($object, ResponseSchema $resourceSchema, array &$included): array
     {
-        $attributes = [];
+        // Get included objects
+        $includedObjects = $resourceSchema->getIncludedObjects($object);
 
-        foreach ($schemaAttributes as $schemaAttribute) {
-            $key = $schemaAttribute->getKey();
-            $attributes[$key] = $object->{'get' . ucfirst($key)}();
-        }
+        foreach($includedObjects as $includedObject) {
+            $objectClass = get_class($includedObject);
 
-        return $attributes;
-    }
+            if($this->hasIncludedSchema($objectClass)) {
+                $includedSchema = $this->getIncludedSchema($objectClass);
 
-    /**
-     * Extract the relationships and included resources into an array using the specified SchemaRelationships
-     * @param ResponseSchemaRelationship[] $schemaRelationships
-     * @param $object
-     * @param array &$included  Two-dimensional array with relationship key as row index and relationship
-     *                          id as column index
-     * @return array
-     */
-    private function extractRelationships(array $schemaRelationships, $object, array &$included = []): array
-    {
-        $relationships = [];
+                $includedType = $includedSchema->getResourceType();
+                $includedId = $includedSchema->getResourceId($includedObject);
 
-        foreach ($schemaRelationships as $schemaRelationship) {
-            $key = $schemaRelationship->getKey();
-            $relationshipObject = $object->{'get' . ucfirst($key)}();
-
-            // If a To-One relationship
-            if ($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_ONE) {
-                // if relationshipObject is null, set relationship data as null
-                if (is_null($relationshipObject)) {
-                    $relationships[$key] = ["data" => null];
-                    continue;
+                // Include resource only once;
+                if(!isset($included[$includedType][$includedId])) {
+                    // Indexing by type and ID ensures a unique resource is included only once
+                    $included[$includedType][$includedId] = $this->extractResource($includedObject, $includedSchema);
                 }
 
-                // Get the compatible ResourceIdentifierSchema for this object
-                $resourceIdentifier = $schemaRelationship->getExpectedResourceByClassName(
-                    get_class($relationshipObject));
-
-                if (!is_null($resourceIdentifier)) {
-                    // Get the type and ID of the relationship
-                    $relType = $resourceIdentifier->getType();
-                    $relId = $relationshipObject->{'get' . ucfirst($resourceIdentifier->getIdentifierPropertyName())}();
-
-                    // Add relationship into the relationships array
-                    $relationships[$key] = [
-                        "data" => [
-                            "type" => $relType,
-                            "id" => $relId
-                        ],
-                    ];
-
-                    // If relationship is included
-                    if ($schemaRelationship->isIncluded()) {
-                        $included = $this->includeRelationship($relationshipObject, $included, $relType, $relId);
-                    }
-                } else {
-                    $relationships[$key] = ["data" => null];
-                    continue;
-                }
-            } else if ($schemaRelationship->getCardinality() === ResponseSchemaRelationship::TO_MANY) {
-                if (empty($relationshipObject)) {
-                    $relationships[$key] = ["data" => []];
-                    continue;
-                }
-
-                // Relationship object is assumed to be an array
-                foreach ($relationshipObject as $item) {
-                    // Get the compatible ResourceIdentifierSchema for this object
-                    $resourceIdentifier = $schemaRelationship->getExpectedResourceByClassName(
-                        get_class($item));
-
-                    if (!is_null($resourceIdentifier)) {
-                        // Get the type and ID of the relationship
-                        $relType = $resourceIdentifier->getType();
-                        $relId = $item->{'get' . ucfirst($resourceIdentifier->getIdentifierPropertyName())}();
-
-                        // Add relationship into the relationships array
-                        $relationships[$key]['data'][] = [
-                            "type" => $relType,
-                            "id" => $relId
-                        ];
-
-                        // If relationship is included
-                        if ($schemaRelationship->isIncluded()) {
-                            $included = $this->includeRelationship($item, $included, $relType, $relId);
-                        }
-                    } else {
-                        $relationships[$key] = ["data" => []];
-                        continue;
-                    }
-                }
+                // Recursively extract included objects
+                $included = $this->extractIncluded($includedObject, $includedSchema, $included);
             }
         }
 
-        return [$relationships, $included];
-    }
-
-    /**
-     * Add the relationship resource into the included array.
-     * @param $relationshipObject
-     * @param array &$included  The source included array
-     * @param string $relType   Specifies the resource type
-     * @param mixed $relId      Specifies the resource ID
-     * @return array            The modified array with the newly added resource
-     */
-    private function includeRelationship($relationshipObject, array &$included, string $relType, $relId): array
-    {
-        // Get schema from included schemas
-        $schema = $this->getIncludedSchema(get_class($relationshipObject));
-
-        if (!is_null($schema)) {
-            $relAttributes = $this->extractAttributes($schema->getAttributes(), $relationshipObject);
-            list($relationships, $included) = $this->extractRelationships($schema->getRelationships(),
-                $relationshipObject, $included);
-
-            // Include only once
-            if (!isset($included[$relType][$relId])) {
-                $included[$relType][$relId] = [
-                    "type" => $relType,
-                    "id" => $relId,
-                    "attributes" => $relAttributes,
-                ];
-
-                if (!empty($relationships)) {
-                    $included[$relType][$relId]['relationships'] = $relationships;
-                }
-            }
-        }
         return $included;
     }
 }

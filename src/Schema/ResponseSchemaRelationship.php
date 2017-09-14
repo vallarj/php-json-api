@@ -22,16 +22,10 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResponseSchemaRelationship
+class ResponseSchemaRelationship extends AbstractSchemaRelationship
 {
-    const TO_ONE    =   "toOne";
-    const TO_MANY   =   "toMany";
-
     /** @var string Specifies the key of the relationship */
     private $key;
-
-    /** @var string Specifies relationship cardinality */
-    private $cardinality;
 
     /** @var bool Specifies if relationship is to be included in the document */
     private $included;
@@ -41,60 +35,42 @@ class ResponseSchemaRelationship
 
     /**
      * ResponseSchemaRelationship constructor.
-     * @param string $key           Specifies the relationship key
-     * @param string $cardinality   Specifies relationship cardinality (to-One or to-Many)
-     * @param bool $included        Specifies if this relationship is to be included in the document.
-     *                              Defaults to false.
-     * @throws InvalidArgumentException
      */
-    function __construct(string $key, string $cardinality, bool $included = false)
+    function __construct()
     {
-        if($cardinality != self::TO_ONE && $cardinality != self::TO_MANY) {
-            throw InvalidArgumentException::fromResponseSchemaRelationshipConstructor();
-        }
+        parent::__construct();
 
-        $this->key = $key;
-        $this->cardinality = $cardinality;
-        $this->included = $included;
+        $this->key = "";
+        $this->included = false;
         $this->expectedResources = [];
     }
 
     /**
-     * Construct a ResponseSchemaRelationship from an array compatible
-     * with relationship builder specifications
-     * @param array $relationshipSpecifications
-     * @return ResponseSchemaRelationship
-     * @throws InvalidSpecificationException
+     * @inheritdoc
      */
-    public static function fromArray(array $relationshipSpecifications): ResponseSchemaRelationship
+    public function setOptions(array $options)
     {
-        if(!isset($relationshipSpecifications['key'])) {
-            throw new InvalidSpecificationException("Index 'key' is required.");
+        if(isset($options['key'])) {
+            $this->key = $options['key'];
         }
 
-        if(!isset($relationshipSpecifications['cardinality'])) {
-            throw new InvalidSpecificationException("Index 'cardinality' is required");
+        if(isset($options['cardinality'])) {
+            $this->setCardinality($options['cardinality']);
         }
 
-        $included = isset($relationshipSpecifications['included']) ? $relationshipSpecifications['included'] : false;
+        $this->included = isset($options['included']) ? $options['included'] : false;
 
-        // Create a new instance of ResponseSchemaRelationship
-        $instance = new self($relationshipSpecifications['key'], $relationshipSpecifications['cardinality'], $included);
-
-        if(isset($relationshipSpecifications['expects'])) {
-            $expects = $relationshipSpecifications['expects'];
+        if(isset($options['expects'])) {
+            $expects = $options['expects'];
 
             if(!is_array($expects)) {
-                throw new InvalidSpecificationException("Index 'expects' must be an array.");
+                throw new InvalidSpecificationException("Index 'expects' must be a compatible array.");
             }
 
             foreach($expects as $resourceIdentifier) {
-                $instance->addExpectedResource($resourceIdentifier);
+                $this->addExpectedResource($resourceIdentifier);
             }
         }
-
-        // Return the instance
-        return $instance;
     }
 
     /**
@@ -104,15 +80,6 @@ class ResponseSchemaRelationship
     public function getKey(): string
     {
         return $this->key;
-    }
-
-    /**
-     * Gets the cardinality of the relationship
-     * @return string
-     */
-    public function getCardinality(): string
-    {
-        return $this->cardinality;
     }
 
     /**
@@ -153,17 +120,51 @@ class ResponseSchemaRelationship
     }
 
     /**
-     * Gets the mapped type by class name
-     * Returns null if class name was not found
-     * @param string $class
-     * @return null|ResourceIdentifierSchema
+     * @inheritdoc
      */
-    public function getExpectedResourceByClassName(string $class): ?ResourceIdentifierSchema
+    public function getRelationship($parentObject): array
     {
-        if(isset($this->expectedResources[$class])) {
-            return $this->expectedResources[$class];
+        $relationship = $this->getMappedObject($parentObject);
+
+        if($this->getCardinality() === self::TO_ONE) {
+            if(!$relationship || !isset($this->expectedResources[get_class($relationship)])) {
+                $data = null;
+            } else {
+                $resourceIdentifier = $this->expectedResources[get_class($relationship)];
+
+                $data = [
+                    "type" => $resourceIdentifier->getResourceType(),
+                    "id" => $resourceIdentifier->getResourceId($relationship)
+                ];
+            }
+        } else if ($this->getCardinality() === self::TO_MANY) {
+            $data = [];
+            foreach($relationship as $item) {
+                if(!$item || !isset($this->expectedResources[get_class($item)])) {
+                    continue;
+                } else {
+                    $resourceIdentifier = $this->expectedResources[get_class($item)];
+
+                    $data[] = [
+                        "type" => $resourceIdentifier->getResourceType(),
+                        "id" => $resourceIdentifier->getResourceId($item)
+                    ];
+                }
+            }
+        } else {
+            $data = null;
         }
 
-        return null;
+        return [
+            "data" => $data
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getMappedObject($parentObject)
+    {
+        return $parentObject->{'get' . ucfirst($this->getKey())}();
     }
 }

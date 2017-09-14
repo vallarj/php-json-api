@@ -24,7 +24,7 @@ use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 class ResourceIdentifierSchema
 {
     /** @var string Specifies the resource type */
-    private $type;
+    private $resourceType;
 
     /** @var string Specifies the FQCN of the object to bind this schema */
     private $class;
@@ -34,12 +34,12 @@ class ResourceIdentifierSchema
 
     /**
      * ResourceIdentifierSchema constructor.
-     * @param string $type
+     * @param string $resourceType
      * @param string $class
      */
-    function __construct(string $type, string $class)
+    function __construct(string $resourceType, string $class)
     {
-        $this->type = $type;
+        $this->resourceType = $resourceType;
         $this->class = $class;
 
         // Set defaults
@@ -80,9 +80,19 @@ class ResourceIdentifierSchema
      * Gets the type of the resource.
      * @return string
      */
-    public function getType(): string
+    public function getResourceType(): string
     {
-        return $this->type;
+        return $this->resourceType;
+    }
+
+    /**
+     * Extracts the resource ID based on identifier property name
+     * @param $object
+     * @return mixed
+     */
+    public function getResourceId($object)
+    {
+        return $object->{'get' . ucfirst($this->getIdentifierPropertyName())}();
     }
 
     /**

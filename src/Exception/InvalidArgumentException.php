@@ -32,7 +32,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      * of ResponseSchema class
      * @return InvalidArgumentException
      */
-    public static function fromResponseSchemaAddAttribute()
+    public static function fromResponseSchemaAddSchemaAttribute()
     {
         return new self("Argument must be an instance of ResponseSchemaAttribute or an array compatible " .
             "with schema attribute builder specifications");
@@ -49,12 +49,6 @@ class InvalidArgumentException extends \InvalidArgumentException
             "compatible with schema relationship builder specifications");
     }
 
-    public static function fromResponseSchemaRelationshipConstructor()
-    {
-        return new self("Argument 'cardinality' must be one of" .
-            "ResponseSchemaRelationship::TO_ONE or ResponseSchemaRelationship::TO_MANY");
-    }
-
     public static function fromResponseSchemaRelationshipAddExpectedResource()
     {
         return new self("Argument must be an instance of ResourceIdentifierSchema or an array compatible " .
@@ -69,5 +63,11 @@ class InvalidArgumentException extends \InvalidArgumentException
     public static function fromResourceCollectionResponseDocumentAddResource()
     {
         return new self("Argument must be an object.");
+    }
+
+    public static function fromAbstractSchemaRelationshipSetCardinality()
+    {
+        return new self("Argument must be one of:" .
+            "AbstractSchemaRelationship::TO_ONE, AbstractSchemaRelationship::TO_MANY");
     }
 }
