@@ -153,7 +153,7 @@ class ResponseSchema extends ResourceIdentifierSchema
      * Adds an AbstractSchemaRelationship to the ResponseSchema.
      * If a relationship in the array with the same key exists, it will be replaced.
      * @param AbstractSchemaRelationship|array $relationship    If argument is an array, it must be compatible with
-     *                                                          the ResponseSchemaRelationship builder specifications
+     *                                                          the NestedSchemaRelationship builder specifications
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException
      */

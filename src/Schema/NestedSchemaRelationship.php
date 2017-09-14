@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResponseSchemaRelationship extends AbstractSchemaRelationship
+class NestedSchemaRelationship extends AbstractSchemaRelationship
 {
     /** @var string Specifies the key of the relationship */
     private $key;
@@ -34,7 +34,7 @@ class ResponseSchemaRelationship extends AbstractSchemaRelationship
     private $expectedResources;
 
     /**
-     * ResponseSchemaRelationship constructor.
+     * NestedSchemaRelationship constructor.
      */
     function __construct()
     {

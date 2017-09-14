@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Document;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\ResponseSchema;
 use Vallarj\JsonApi\Schema\ResponseSchemaAttribute;
-use Vallarj\JsonApi\Schema\ResponseSchemaRelationship;
+use Vallarj\JsonApi\Schema\NestedSchemaRelationship;
 
 abstract class AbstractResponseDocument
 {

@@ -45,7 +45,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      */
     public static function fromResponseSchemaAddRelationship()
     {
-        return new self("Argument must be an instance of ResponseSchemaRelationship or an array " .
+        return new self("Argument must be an instance of NestedSchemaRelationship or an array " .
             "compatible with schema relationship builder specifications");
     }
 
