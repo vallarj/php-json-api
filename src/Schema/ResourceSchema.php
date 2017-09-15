@@ -22,16 +22,16 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResponseSchema extends ResourceIdentifierSchema
+class ResourceSchema extends ResourceIdentifierSchema
 {
-    /** @var ResponseSchemaAttribute[] Attributes of this schema */
+    /** @var SchemaAttribute[] Attributes of this schema */
     private $attributes;
 
     /** @var AbstractSchemaRelationship[] Relationships of this schema */
     private $relationships;
 
     /**
-     * ResponseSchema constructor.
+     * ResourceSchema constructor.
      * @param string $resourceType      The resource type.
      * @param string $class     The FQCN of the object to bind this schema to
      */
@@ -44,10 +44,10 @@ class ResponseSchema extends ResourceIdentifierSchema
     }
 
     /**
-     * Construct a ResponseSchema from an array compatible
-     * with ResponseSchema builder specifications
+     * Construct a ResourceSchema from an array compatible
+     * with ResourceSchema builder specifications
      * @param array $resourceSpecifications
-     * @return ResponseSchema
+     * @return ResourceSchema
      * @throws InvalidSpecificationException
      */
     public static function fromArray(array $resourceSpecifications)
@@ -62,7 +62,7 @@ class ResponseSchema extends ResourceIdentifierSchema
             throw new InvalidSpecificationException("Index 'class' is required.");
         }
 
-        // Create a new instance of ResponseSchema
+        // Create a new instance of ResourceSchema
         $instance = new static($resourceSpecifications['type'], $resourceSpecifications['class']);
 
         // Create attributes
@@ -111,23 +111,23 @@ class ResponseSchema extends ResourceIdentifierSchema
     }
 
     /**
-     * Add a ResponseSchemaAttribute to the ResponseSchema.
+     * Add a SchemaAttribute to the ResourceSchema.
      * If an attribute in the array with the same key exists, it will be replaced.
-     * @param ResponseSchemaAttribute|array $attribute  If argument is an array, it must be compatible
-     *                                                  with the ResponseSchemaAttribute builder specifications.
+     * @param SchemaAttribute|array $attribute  If argument is an array, it must be compatible
+     *                                                  with the SchemaAttribute builder specifications.
      * @throws InvalidArgumentException
      */
     public function addSchemaAttribute($attribute): void
     {
-        if($attribute instanceof ResponseSchemaAttribute) {
+        if($attribute instanceof SchemaAttribute) {
             $this->attributes[$attribute->getKey()] = $attribute;
         } else if(is_array($attribute)) {
-            $attribute = ResponseSchemaAttribute::fromArray($attribute);
+            $attribute = SchemaAttribute::fromArray($attribute);
 
             // Add to the attributes array with the key as index.
             $this->attributes[$attribute->getKey()] = $attribute;
         } else {
-            // Must be a ResponseSchemaAttribute instance or a compatible array
+            // Must be a SchemaAttribute instance or a compatible array
             throw InvalidArgumentException::fromResponseSchemaAddSchemaAttribute();
         }
     }
@@ -150,7 +150,7 @@ class ResponseSchema extends ResourceIdentifierSchema
     }
 
     /**
-     * Adds an AbstractSchemaRelationship to the ResponseSchema.
+     * Adds an AbstractSchemaRelationship to the ResourceSchema.
      * If a relationship in the array with the same key exists, it will be replaced.
      * @param AbstractSchemaRelationship|array $relationship    If argument is an array, it must be compatible with
      *                                                          the NestedSchemaRelationship builder specifications

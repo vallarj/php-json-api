@@ -20,20 +20,20 @@ namespace Vallarj\JsonApi\Document;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\ResponseSchema;
-use Vallarj\JsonApi\Schema\ResponseSchemaAttribute;
+use Vallarj\JsonApi\Schema\ResourceSchema;
+use Vallarj\JsonApi\Schema\SchemaAttribute;
 use Vallarj\JsonApi\Schema\NestedSchemaRelationship;
 
-abstract class AbstractResponseDocument
+abstract class AbstractDocument
 {
-    /** @var ResponseSchema[] Array of ResponseSchemas used by the document */
+    /** @var ResourceSchema[] Array of ResponseSchemas used by the document */
     private $primarySchemas;
 
-    /** @var ResponseSchema[] Array of ResponseSchemas for included resources */
+    /** @var ResourceSchema[] Array of ResponseSchemas for included resources */
     private $includedSchemas;
 
     /**
-     * AbstractResponseDocument constructor.
+     * AbstractDocument constructor.
      */
     function __construct()
     {
@@ -51,34 +51,34 @@ abstract class AbstractResponseDocument
     }
 
     /**
-     * Returns a ResponseSchema from the array of primary resource ResponseSchemas for the given class
+     * Returns a ResourceSchema from the array of primary resource ResponseSchemas for the given class
      * @param string $class
-     * @return null|ResponseSchema
+     * @return null|ResourceSchema
      */
-    public function getPrimarySchema(string $class): ?ResponseSchema
+    public function getPrimarySchema(string $class): ?ResourceSchema
     {
         return $this->primarySchemas[$class] ?? null;
     }
 
     /**
-     * Adds a ResponseSchema to the list of ResponseSchemas that the document can use to bind an object as a
+     * Adds a ResourceSchema to the list of ResponseSchemas that the document can use to bind an object as a
      * primary resource
      * If a schema in the array with the same class exists, it will be replaced.
-     * @param ResponseSchema|array $primarySchema  If argument is an array, it must be compatible with
-     *                                              the ResponseSchema builder specifications
+     * @param ResourceSchema|array $primarySchema  If argument is an array, it must be compatible with
+     *                                              the ResourceSchema builder specifications
      * @throws InvalidArgumentException
      */
     public function addPrimarySchema($primarySchema): void
     {
-        if($primarySchema instanceof ResponseSchema) {
+        if($primarySchema instanceof ResourceSchema) {
             $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
         } else if(is_array($primarySchema)) {
-            $primarySchema = ResponseSchema::fromArray($primarySchema);
+            $primarySchema = ResourceSchema::fromArray($primarySchema);
 
             // Add to the schemas array with the class as index
             $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
         } else {
-            // Must be a ResponseSchema instance or a compatible array
+            // Must be a ResourceSchema instance or a compatible array
             throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
         }
     }
@@ -94,33 +94,33 @@ abstract class AbstractResponseDocument
     }
 
     /**
-     * Returns a ResponseSchema from the array of included resource ResponseSchemas for the given class
+     * Returns a ResourceSchema from the array of included resource ResponseSchemas for the given class
      * @param string $class
-     * @return null|ResponseSchema
+     * @return null|ResourceSchema
      */
-    public function getIncludedSchema(string $class): ?ResponseSchema
+    public function getIncludedSchema(string $class): ?ResourceSchema
     {
         return $this->includedSchemas[$class] ?? null;
     }
 
     /**
-     * Adds a ResponseSchema to the list of ResponseSchemas that the document can use for resource inclusion
+     * Adds a ResourceSchema to the list of ResponseSchemas that the document can use for resource inclusion
      * If a schema in the array with the same class exists, it will be replaced.
-     * @param ResponseSchema|array $includedSchema  If argument is an array, it must be compatible with
-     *                                              the ResponseSchema builder specifications
+     * @param ResourceSchema|array $includedSchema  If argument is an array, it must be compatible with
+     *                                              the ResourceSchema builder specifications
      * @throws InvalidArgumentException
      */
     public function addIncludedSchema($includedSchema): void
     {
-        if($includedSchema instanceof ResponseSchema) {
+        if($includedSchema instanceof ResourceSchema) {
             $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
         } else if(is_array($includedSchema)) {
-            $includedSchema = ResponseSchema::fromArray($includedSchema);
+            $includedSchema = ResourceSchema::fromArray($includedSchema);
 
             // Add to the schemas array with the class as index
             $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
         } else {
-            // Must be a ResponseSchema instance or a compatible array
+            // Must be a ResourceSchema instance or a compatible array
             throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
         }
     }
@@ -139,7 +139,7 @@ abstract class AbstractResponseDocument
      */
     final protected function extractDocumentComponents($boundObject, array &$included = []): array
     {
-        // Find a compatible ResponseSchema for the bound object.
+        // Find a compatible ResourceSchema for the bound object.
         $resourceSchema = $this->getPrimarySchema(get_class($boundObject));
 
         $data = $this->extractResource($boundObject, $resourceSchema);
@@ -151,12 +151,12 @@ abstract class AbstractResponseDocument
     }
 
     /**
-     * Extract resource from a given object and equivalent ResponseSchema
+     * Extract resource from a given object and equivalent ResourceSchema
      * @param $object
-     * @param ResponseSchema $resourceSchema
+     * @param ResourceSchema $resourceSchema
      * @return array
      */
-    private function extractResource($object, ResponseSchema $resourceSchema)
+    private function extractResource($object, ResourceSchema $resourceSchema)
     {
         // Extract attributes
         $attributes = $resourceSchema->getAttributes($object);
@@ -180,14 +180,14 @@ abstract class AbstractResponseDocument
     }
 
     /**
-     * Extract included resources recursively from a given object, equivalent ResponseSchema and an
+     * Extract included resources recursively from a given object, equivalent ResourceSchema and an
      * existing two-dimensional included array indexed by resource type and resource ID
      * @param $object
-     * @param ResponseSchema $resourceSchema
+     * @param ResourceSchema $resourceSchema
      * @param array $included
      * @return array
      */
-    private function extractIncluded($object, ResponseSchema $resourceSchema, array &$included): array
+    private function extractIncluded($object, ResourceSchema $resourceSchema, array &$included): array
     {
         // Get included objects
         $includedObjects = $resourceSchema->getIncludedObjects($object);

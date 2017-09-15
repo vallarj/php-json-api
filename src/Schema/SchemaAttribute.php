@@ -21,13 +21,13 @@ namespace Vallarj\JsonApi\Schema;
 
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResponseSchemaAttribute
+class SchemaAttribute
 {
     /** @var string Specifies the key of the attribute */
     private $key;
 
     /**
-     * ResponseSchemaAttribute constructor.
+     * SchemaAttribute constructor.
      * @param string $key   The attribute key
      */
     function __construct(string $key)
@@ -36,13 +36,13 @@ class ResponseSchemaAttribute
     }
 
     /**
-     * Construct a ResponseSchemaAttribute from an array compatible
+     * Construct a SchemaAttribute from an array compatible
      * with schema attribute builder specifications
      * @param array $attributeSpecifications
-     * @return ResponseSchemaAttribute
+     * @return SchemaAttribute
      * @throws InvalidSpecificationException
      */
-    public static function fromArray(array $attributeSpecifications): ResponseSchemaAttribute
+    public static function fromArray(array $attributeSpecifications): SchemaAttribute
     {
         if(!isset($attributeSpecifications['key'])) {
             throw new InvalidSpecificationException("Index 'key' is required");

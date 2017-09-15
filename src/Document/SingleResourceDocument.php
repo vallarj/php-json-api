@@ -21,22 +21,22 @@ namespace Vallarj\JsonApi\Document;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 
-class ResourceCollectionResponseDocument extends AbstractResponseDocument
+class SingleResourceDocument extends AbstractDocument
 {
-    /** @var array The object bound to the document */
-    private $boundObjects;
+    /** @var object The object bound to the document */
+    private $boundObject;
 
     /**
-     * Adds a resource object to the document
+     * Binds an object to the document
      * @param $object
      * @throws InvalidArgumentException
      */
-    public function addResource($object): void
+    public function bind($object): void
     {
-        if (is_object($object)) {
-            $this->boundObjects[] = $object;
+        if(is_object($object)) {
+            $this->boundObject = $object;
         } else {
-            throw InvalidArgumentException::fromResourceCollectionResponseDocumentAddResource();
+            throw InvalidArgumentException::fromSingleResourceResponseDocumentBind();
         }
     }
 
@@ -45,36 +45,28 @@ class ResourceCollectionResponseDocument extends AbstractResponseDocument
      */
     public function getData(): array
     {
-        // Return empty array if no bound objects
-        if (empty($this->boundObjects)) {
+        // Return empty array if no bound object
+        if(!$this->boundObject) {
             return [];
         }
 
-        $data = [];
-        $included = [];
-        foreach($this->boundObjects as $boundObject) {
-            // Return empty array if no resource schema found
-            if (!$this->hasPrimarySchema(get_class($boundObject))) {
-                continue;
-            }
-
-            // Extract the document components (i.e., single resource data and included)
-            list($resource, $included) = $this->extractDocumentComponents($boundObject, $included);
-
-            // Push resource data into array of resources
-            $data[] = $resource;
+        // Return empty array if no resource schema found
+        if(!$this->hasPrimarySchema(get_class($this->boundObject))) {
+            return [];
         }
 
-        // Build the root document object
+        // Extract the document components (i.e., data and included)
+        list($data, $included) = $this->extractDocumentComponents($this->boundObject);
+
         $root = [
             "data" => $data
         ];
 
-        if (!empty($included)) {
+        if(!empty($included)) {
             // For each included item, disassemble the array
-            foreach ($included as $items) {
+            foreach($included as $items) {
                 // First level: relationship types
-                foreach ($items as $item) {
+                foreach($items as $item) {
                     // Second level: relationship ids
 
                     $root['included'][] = $item;
@@ -82,7 +74,6 @@ class ResourceCollectionResponseDocument extends AbstractResponseDocument
             }
         }
 
-        // Return the root document object
         return $root;
     }
 }

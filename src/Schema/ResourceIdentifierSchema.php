@@ -47,8 +47,8 @@ class ResourceIdentifierSchema
     }
 
     /**
-     * Construct a ResponseSchema from an array compatible
-     * with ResponseSchema builder specifications
+     * Construct a ResourceSchema from an array compatible
+     * with ResourceSchema builder specifications
      * @param array $resourceSpecifications
      * @return ResourceIdentifierSchema
      * @throws InvalidSpecificationException
@@ -65,7 +65,7 @@ class ResourceIdentifierSchema
             throw new InvalidSpecificationException("Index 'class' is required.");
         }
 
-        // Create a new instance of ResponseSchema
+        // Create a new instance of ResourceSchema
         $instance = new static($resourceSpecifications['type'], $resourceSpecifications['class']);
 
         if(isset($resourceSpecifications['identifier'])) {

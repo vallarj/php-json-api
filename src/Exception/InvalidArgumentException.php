@@ -23,24 +23,24 @@ class InvalidArgumentException extends \InvalidArgumentException
 {
     public static function fromAbstractResponseDocumentAddSchema()
     {
-        return new self("Argument must be an instance of ResponseSchema or an array compatible " .
-            "with ResponseSchema builder specifications");
+        return new self("Argument must be an instance of ResourceSchema or an array compatible " .
+            "with ResourceSchema builder specifications");
     }
 
     /**
      * Thrown when adding an invalid type of argument to the addAttribute method
-     * of ResponseSchema class
+     * of ResourceSchema class
      * @return InvalidArgumentException
      */
     public static function fromResponseSchemaAddSchemaAttribute()
     {
-        return new self("Argument must be an instance of ResponseSchemaAttribute or an array compatible " .
+        return new self("Argument must be an instance of SchemaAttribute or an array compatible " .
             "with schema attribute builder specifications");
     }
 
     /**
      * Thrown when adding an invalid type of argument to the addRelationship method
-     * of ResponseSchema class
+     * of ResourceSchema class
      * @return InvalidArgumentException
      */
     public static function fromResponseSchemaAddRelationship()
