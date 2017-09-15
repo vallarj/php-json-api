@@ -36,7 +36,7 @@ class SingleResourceDocument extends AbstractDocument
         if(is_object($object)) {
             $this->boundObject = $object;
         } else {
-            throw InvalidArgumentException::fromSingleResourceResponseDocumentBind();
+            throw InvalidArgumentException::fromSingleResourceDocumentBind();
         }
     }
 

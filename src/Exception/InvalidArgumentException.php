@@ -21,7 +21,7 @@ namespace Vallarj\JsonApi\Exception;
 
 class InvalidArgumentException extends \InvalidArgumentException
 {
-    public static function fromAbstractResponseDocumentAddSchema()
+    public static function fromAbstractDocumentAddSchema()
     {
         return new self("Argument must be an instance of ResourceSchema or an array compatible " .
             "with ResourceSchema builder specifications");
@@ -32,7 +32,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      * of ResourceSchema class
      * @return InvalidArgumentException
      */
-    public static function fromResponseSchemaAddSchemaAttribute()
+    public static function fromResourceSchemaAddSchemaAttribute()
     {
         return new self("Argument must be an instance of SchemaAttribute or an array compatible " .
             "with schema attribute builder specifications");
@@ -43,24 +43,24 @@ class InvalidArgumentException extends \InvalidArgumentException
      * of ResourceSchema class
      * @return InvalidArgumentException
      */
-    public static function fromResponseSchemaAddRelationship()
+    public static function fromResourceSchemaAddRelationship()
     {
         return new self("Argument must be an instance of NestedSchemaRelationship or an array " .
             "compatible with schema relationship builder specifications");
     }
 
-    public static function fromResponseSchemaRelationshipAddExpectedResource()
+    public static function fromNestedSchemaRelationshipAddExpectedResource()
     {
         return new self("Argument must be an instance of ResourceIdentifierSchema or an array compatible " .
             "with ResourceIdentifierSchema builder specifications");
     }
 
-    public static function fromSingleResourceResponseDocumentBind()
+    public static function fromSingleResourceDocumentBind()
     {
         return new self("Argument must be an object.");
     }
 
-    public static function fromResourceCollectionResponseDocumentAddResource()
+    public static function fromResourceCollectionDocumentAddResource()
     {
         return new self("Argument must be an object.");
     }

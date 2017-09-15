@@ -110,7 +110,7 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     {
         if(!$resourceIdentifier instanceof ResourceIdentifierSchema) {
             if(!is_array($resourceIdentifier)) {
-                throw InvalidArgumentException::fromResponseSchemaRelationshipAddExpectedResource();
+                throw InvalidArgumentException::fromNestedSchemaRelationshipAddExpectedResource();
             }
 
             $resourceIdentifier = ResourceIdentifierSchema::fromArray($resourceIdentifier);

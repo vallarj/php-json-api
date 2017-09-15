@@ -36,7 +36,7 @@ class ResourceCollectionDocument extends AbstractDocument
         if (is_object($object)) {
             $this->boundObjects[] = $object;
         } else {
-            throw InvalidArgumentException::fromResourceCollectionResponseDocumentAddResource();
+            throw InvalidArgumentException::fromResourceCollectionDocumentAddResource();
         }
     }
 

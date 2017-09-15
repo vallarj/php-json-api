@@ -26,10 +26,10 @@ use Vallarj\JsonApi\Schema\NestedSchemaRelationship;
 
 abstract class AbstractDocument
 {
-    /** @var ResourceSchema[] Array of ResponseSchemas used by the document */
+    /** @var ResourceSchema[] Array of ResourceSchemas used by the document */
     private $primarySchemas;
 
-    /** @var ResourceSchema[] Array of ResponseSchemas for included resources */
+    /** @var ResourceSchema[] Array of ResourceSchemas for included resources */
     private $includedSchemas;
 
     /**
@@ -51,7 +51,7 @@ abstract class AbstractDocument
     }
 
     /**
-     * Returns a ResourceSchema from the array of primary resource ResponseSchemas for the given class
+     * Returns a ResourceSchema from the array of primary resource ResourceSchemas for the given class
      * @param string $class
      * @return null|ResourceSchema
      */
@@ -61,7 +61,7 @@ abstract class AbstractDocument
     }
 
     /**
-     * Adds a ResourceSchema to the list of ResponseSchemas that the document can use to bind an object as a
+     * Adds a ResourceSchema to the list of ResourceSchemas that the document can use to bind an object as a
      * primary resource
      * If a schema in the array with the same class exists, it will be replaced.
      * @param ResourceSchema|array $primarySchema  If argument is an array, it must be compatible with
@@ -70,17 +70,17 @@ abstract class AbstractDocument
      */
     public function addPrimarySchema($primarySchema): void
     {
-        if($primarySchema instanceof ResourceSchema) {
-            $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
-        } else if(is_array($primarySchema)) {
-            $primarySchema = ResourceSchema::fromArray($primarySchema);
-
-            // Add to the schemas array with the class as index
-            $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
-        } else {
-            // Must be a ResourceSchema instance or a compatible array
-            throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
+        if(!$primarySchema instanceof ResourceSchema) {
+            if(is_array($primarySchema)) {
+                $primarySchema = ResourceSchema::fromArray($primarySchema);
+            } else {
+                // Must be a ResourceSchema instance or a compatible array
+                throw InvalidArgumentException::fromAbstractDocumentAddSchema();
+            }
         }
+
+        // Add to the schemas array with the class as index
+        $this->primarySchemas[$primarySchema->getClass()] = $primarySchema;
     }
 
     /**
@@ -94,7 +94,7 @@ abstract class AbstractDocument
     }
 
     /**
-     * Returns a ResourceSchema from the array of included resource ResponseSchemas for the given class
+     * Returns a ResourceSchema from the array of included resource ResourceSchemas for the given class
      * @param string $class
      * @return null|ResourceSchema
      */
@@ -104,7 +104,7 @@ abstract class AbstractDocument
     }
 
     /**
-     * Adds a ResourceSchema to the list of ResponseSchemas that the document can use for resource inclusion
+     * Adds a ResourceSchema to the list of ResourceSchemas that the document can use for resource inclusion
      * If a schema in the array with the same class exists, it will be replaced.
      * @param ResourceSchema|array $includedSchema  If argument is an array, it must be compatible with
      *                                              the ResourceSchema builder specifications
@@ -112,17 +112,17 @@ abstract class AbstractDocument
      */
     public function addIncludedSchema($includedSchema): void
     {
-        if($includedSchema instanceof ResourceSchema) {
-            $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
-        } else if(is_array($includedSchema)) {
-            $includedSchema = ResourceSchema::fromArray($includedSchema);
-
-            // Add to the schemas array with the class as index
-            $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
-        } else {
-            // Must be a ResourceSchema instance or a compatible array
-            throw InvalidArgumentException::fromAbstractResponseDocumentAddSchema();
+        if(!$includedSchema instanceof ResourceSchema) {
+            if(is_array($includedSchema)) {
+                $includedSchema = ResourceSchema::fromArray($includedSchema);
+            } else {
+                // Must be a ResourceSchema instance or a compatible array
+                throw InvalidArgumentException::fromAbstractDocumentAddSchema();
+            }
         }
+
+        // Add to the array of included schemas with class as index
+        $this->includedSchemas[$includedSchema->getClass()] = $includedSchema;
     }
 
     /**

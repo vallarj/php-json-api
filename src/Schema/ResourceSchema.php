@@ -128,7 +128,7 @@ class ResourceSchema extends ResourceIdentifierSchema
             $this->attributes[$attribute->getKey()] = $attribute;
         } else {
             // Must be a SchemaAttribute instance or a compatible array
-            throw InvalidArgumentException::fromResponseSchemaAddSchemaAttribute();
+            throw InvalidArgumentException::fromResourceSchemaAddSchemaAttribute();
         }
     }
 
@@ -182,7 +182,7 @@ class ResourceSchema extends ResourceIdentifierSchema
                 $relationship->setOptions($options);
             }
 
-            else InvalidArgumentException::fromResponseSchemaAddRelationship();
+            else InvalidArgumentException::fromResourceSchemaAddRelationship();
         }
 
         // Add to the relationships array with the key as index.
