@@ -52,7 +52,7 @@ class ResourceCollectionDocument extends AbstractDocument
 
         $data = [];
         $included = [];
-        foreach($this->boundObjects as $boundObject) {
+        foreach ($this->boundObjects as $boundObject) {
             // Return empty array if no resource schema found
             if (!$this->hasPrimarySchema(get_class($boundObject))) {
                 continue;
@@ -84,5 +84,15 @@ class ResourceCollectionDocument extends AbstractDocument
 
         // Return the root document object
         return $root;
+    }
+
+    /**
+     * Creates bound objects for this document from a JSON API compatible array
+     * based on primary ResourceSchema. Overwrites current bound objects.
+     * @param array $root
+     */
+    public function setData(array $root): void
+    {
+
     }
 }

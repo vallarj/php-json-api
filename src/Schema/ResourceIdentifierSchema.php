@@ -96,6 +96,16 @@ class ResourceIdentifierSchema
     }
 
     /**
+     * Sets the resource ID based on identifier property name
+     * @param $object
+     * @param $id
+     */
+    public function setResourceId($object, $id): void
+    {
+        $object->{'set' . ucfirst($this->getIdentifierPropertyName())}($id);
+    }
+
+    /**
      * Gets the FQCN of the object bindable to this schema
      * @return string
      */

@@ -70,4 +70,14 @@ class SchemaAttribute
     {
         return $parentObject->{'get' . ucfirst($this->key)}();
     }
+
+    /**
+     * Sets the value of the attribute
+     * @param $parentObject
+     * @param $value
+     */
+    public function setAttribute($parentObject, $value): void
+    {
+        $parentObject->{'set' . ucfirst($this->key)}($value);
+    }
 }

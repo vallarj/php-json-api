@@ -27,6 +27,9 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     /** @var string Specifies the key of the relationship */
     private $key;
 
+    /** @var string Specifies the property name of the mapped relationship */
+    private $mappedAs;
+
     /** @var bool Specifies if relationship is to be included in the document */
     private $included;
 
@@ -41,6 +44,7 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
         parent::__construct();
 
         $this->key = "";
+        $this->mappedAs = "";
         $this->included = false;
         $this->expectedResources = [];
     }
@@ -51,7 +55,11 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     public function setOptions(array $options)
     {
         if(isset($options['key'])) {
-            $this->key = $options['key'];
+            $this->key = $this->mappedAs = $options['key'];
+        }
+
+        if(isset($options['mappedAs'])) {
+            $this->mappedAs = $options['mappedAs'];
         }
 
         if(isset($options['cardinality'])) {
@@ -120,6 +128,22 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     }
 
     /**
+     * Gets a resource mapping by type
+     * @param string $type
+     * @return null|ResourceIdentifierSchema
+     */
+    protected function getExpectedResourceByType(string $type): ?ResourceIdentifierSchema
+    {
+        foreach($this->expectedResources as $expectedResource) {
+            if($expectedResource->getResourceType() === $type) {
+                return $expectedResource;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getRelationship($parentObject): array
@@ -165,6 +189,81 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
      */
     public function getMappedObject($parentObject)
     {
-        return $parentObject->{'get' . ucfirst($this->getKey())}();
+        return $parentObject->{'get' . ucfirst($this->mappedAs)}();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function setToOneRelationship($parentObject, string $type, string $id): bool
+    {
+        // Get compatible schema
+        $schema = $this->getExpectedResourceByType($type);
+
+        if(!$schema) {
+            return false;
+        }
+
+        // Create compatible object
+        $class = $schema->getClass();
+        $object = new $class;
+
+        // Set object ID
+        $schema->setResourceId($object, $id);
+
+        // Map to parent object relationship
+        $parentObject->{'set' . ucfirst($this->mappedAs)}($object);
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function clearToOneRelationship($parentObject): bool
+    {
+        $parentObject->{'set' . ucfirst($this->mappedAs)}(null);
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function addToManyRelationship($parentObject, string $type, string $id): bool
+    {
+        // Get compatible schema
+        $schema = $this->getExpectedResourceByType($type);
+
+        if(!$schema) {
+            return false;
+        }
+
+        // Create compatible object
+        $class = $schema->getClass();
+        $object = new $class;
+
+        // Set object ID
+        $schema->setResourceId($object, $id);
+
+        // Add relationship to parent object
+        $parentObject->{'add' . ucfirst($this->mappedAs)}($object);
+
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function clearToManyRelationship($parentObject): bool
+    {
+        // Get current relationship objects (expects an array)
+        $objects = $this->getMappedObject($parentObject);
+
+        foreach($objects as $object) {
+            // Assumes object has a 'removeRelationship' method
+            $parentObject->{'remove' . ucfirst($this->mappedAs)}($object);
+        }
+
+        return true;
     }
 }

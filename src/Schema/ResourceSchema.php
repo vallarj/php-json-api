@@ -98,7 +98,7 @@ class ResourceSchema extends ResourceIdentifierSchema
      * @param mixed $object     The object to extract the attributes from
      * @return array            Key-value pair of the resource attributes
      */
-    public function getAttributes($object): array
+    public function getResourceAttributes($object): array
     {
         $attributes = [];
 
@@ -108,6 +108,25 @@ class ResourceSchema extends ResourceIdentifierSchema
         }
 
         return $attributes;
+    }
+
+    /**
+     * Set the mapped attribute property of the object.
+     * Returns true if attribute successfully set
+     * @param mixed $object     The object to change the property
+     * @param string $key       The attribute key
+     * @param mixed $value      The value to set
+     * @return bool             True if attribute is successfully set
+     */
+    public function setResourceAttribute($object, string $key, $value): bool
+    {
+        if(!isset($this->attributes[$key])) {
+            return false;
+        }
+
+        $schemaAttribute = $this->attributes[$key];
+        $schemaAttribute->setAttribute($object, $value);
+        return true;
     }
 
     /**
@@ -137,7 +156,7 @@ class ResourceSchema extends ResourceIdentifierSchema
      * @param mixed $object     The object to extract the relationships from
      * @return array            Array containing the relationships
      */
-    public function getRelationships($object): array
+    public function getResourceRelationships($object): array
     {
         $relationships = [];
 
@@ -147,6 +166,24 @@ class ResourceSchema extends ResourceIdentifierSchema
         }
 
         return $relationships;
+    }
+
+    /**
+     * Set the mapped relationship property of the object
+     * Returns true if relationship is successfully set
+     * @param mixed $object         The object to change the property
+     * @param string $key           The relationship key
+     * @param array $relationship   Must be a compatible array
+     * @return bool
+     */
+    public function setResourceRelationship($object, string $key, ?array $relationship): bool
+    {
+        if(!isset($this->relationships[$key])) {
+            return false;
+        }
+
+        $schemaRelationship = $this->relationships[$key];
+        return $schemaRelationship->setRelationship($object, $relationship);
     }
 
     /**
@@ -168,7 +205,6 @@ class ResourceSchema extends ResourceIdentifierSchema
                 if(isset($relationship["options"]) && !is_array($relationship['options'])) {
                     throw new InvalidSpecificationException("Index 'options' must be a compatible array.");
                 }
-
                 $bindType = $relationship['bindType'];
                 $options = $relationship['options'];
 

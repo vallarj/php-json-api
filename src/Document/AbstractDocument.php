@@ -26,7 +26,7 @@ use Vallarj\JsonApi\Schema\NestedSchemaRelationship;
 
 abstract class AbstractDocument
 {
-    /** @var ResourceSchema[] Array of ResourceSchemas used by the document */
+    /** @var ResourceSchema[] Array of ResourceSchemas used by the document indexed by class */
     private $primarySchemas;
 
     /** @var ResourceSchema[] Array of ResourceSchemas for included resources */
@@ -55,9 +55,25 @@ abstract class AbstractDocument
      * @param string $class
      * @return null|ResourceSchema
      */
-    public function getPrimarySchema(string $class): ?ResourceSchema
+    public function getPrimarySchemaByClass(string $class): ?ResourceSchema
     {
         return $this->primarySchemas[$class] ?? null;
+    }
+
+    /**
+     * Returns a ResourceSchema from the array of primary resource ResourceSchemas for a given type
+     * @param string $type
+     * @return null|ResourceSchema
+     */
+    public function getPrimarySchemaByType(string $type): ?ResourceSchema
+    {
+        foreach($this->primarySchemas as $primarySchema) {
+            if($primarySchema->getResourceType() === $type) {
+                return $primarySchema;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -126,7 +142,7 @@ abstract class AbstractDocument
     }
 
     /**
-     * Gets a JSON API equivalent array
+     * Returns a JSON API equivalent array representation of the bound resource
      * @return array
      */
     abstract public function getData(): array;
@@ -140,7 +156,7 @@ abstract class AbstractDocument
     final protected function extractDocumentComponents($boundObject, array &$included = []): array
     {
         // Find a compatible ResourceSchema for the bound object.
-        $resourceSchema = $this->getPrimarySchema(get_class($boundObject));
+        $resourceSchema = $this->getPrimarySchemaByClass(get_class($boundObject));
 
         $data = $this->extractResource($boundObject, $resourceSchema);
 
@@ -159,10 +175,10 @@ abstract class AbstractDocument
     private function extractResource($object, ResourceSchema $resourceSchema)
     {
         // Extract attributes
-        $attributes = $resourceSchema->getAttributes($object);
+        $attributes = $resourceSchema->getResourceAttributes($object);
 
         // Extract relationships
-        $relationships = $resourceSchema->getRelationships($object);
+        $relationships = $resourceSchema->getResourceRelationships($object);
 
         // Build the return data
         $data = [

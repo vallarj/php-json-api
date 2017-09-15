@@ -70,4 +70,9 @@ class InvalidArgumentException extends \InvalidArgumentException
         return new self("Argument must be one of:" .
             "AbstractSchemaRelationship::TO_ONE, AbstractSchemaRelationship::TO_MANY");
     }
+
+    public static function fromAbstractSchemaRelationshipSetRelationship()
+    {
+        return new self("Array must follow the required format");
+    }
 }
