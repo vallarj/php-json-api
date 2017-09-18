@@ -16,12 +16,20 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Service;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Service\DecoderService::class => Factory\Service\DecoderServiceFactory::class,
-        ],
-    ],
-];
+
+use Vallarj\JsonApi\Service\Options\DecoderServiceOptions;
+use Vallarj\JsonApi\Service\Options\SchemaOptions;
+
+class DecoderService
+{
+    private $schemaOptions;
+    private $decoderOptions;
+
+    function __construct(SchemaOptions $schemaOptions, DecoderServiceOptions $decoderOptions)
+    {
+        $this->schemaOptions = $schemaOptions;
+        $this->decoderOptions = $decoderOptions;
+    }
+}
