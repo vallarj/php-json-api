@@ -80,8 +80,8 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
                 throw new InvalidSpecificationException("Index 'expects' must be a compatible array.");
             }
 
-            foreach($expects as $resourceIdentifier) {
-                $this->addExpectedResource($resourceIdentifier);
+            foreach($expects as $schema) {
+                $this->expectedSchemas[] = $schema;
             }
         }
     }

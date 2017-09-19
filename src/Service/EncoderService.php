@@ -196,12 +196,15 @@ class EncoderService
     private function extractRelationship($mappedObject, array $expectedSchemas): ?array
     {
         foreach($expectedSchemas as $expectedSchema) {
-            if($this->schemaOptions->hasClassCompatibleSchema($expectedSchema, $mappedObject)) {
+            if($this->schemaOptions->hasClassCompatibleSchema($expectedSchema, get_class($mappedObject))) {
+                // Schema instance
+                $schema = $this->getResourceSchema($expectedSchema);
+
                 // Get the resource type
                 $objectType = $this->schemaOptions->getResourceTypeBySchema($expectedSchema);
 
                 // Get the ID
-                $objectID = $expectedSchema->getResourceId($mappedObject);
+                $objectID = $schema->getResourceId($mappedObject);
 
                 // TODO: Condition for checking if included
                 // Add included resource only once
