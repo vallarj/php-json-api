@@ -19,6 +19,7 @@
 namespace Vallarj\JsonApi\Service;
 
 
+use function array_push;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\AbstractSchemaRelationship;
 use Vallarj\JsonApi\Schema\ResourceSchema;
@@ -31,6 +32,10 @@ class EncoderService
     private $encoderOptions;
 
     private $schemaCache;
+
+    private $includedKeys;
+
+    private $includedWalker;
 
     /** @var array Holds the data for the current operation */
     private $data;
@@ -51,9 +56,9 @@ class EncoderService
         $this->initializeService();
     }
 
-    public function encode($resource, array $schemaClasses): string
+    public function encode($resource, array $schemaClasses, array $includedKeys = []): string
     {
-        $this->initializeService();
+        $this->initializeService($includedKeys);
 
         if (is_object($resource)) {
             $this->encodeSingleResource($resource, $schemaClasses);
@@ -71,17 +76,24 @@ class EncoderService
             }
         }
 
+        $root = [
+            "data" => $this->data
+        ];
+
+        if(!empty($included)) {
+            $root['included'] = $included;
+        }
+
         // Encode the data
-        return json_encode([
-            "data" => $this->data,
-            "included" => $included
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        return json_encode($root, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
-    private function initializeService()
+    private function initializeService(array $includedKeys = [])
     {
         $this->data = [];
         $this->included = [];
+        $this->includedWalker = [];
+        $this->includedKeys = $includedKeys;
         $this->success = false;
     }
 
@@ -161,14 +173,14 @@ class EncoderService
 
             if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_ONE) {
                 // $mappedObject is a single object
-                $relationship = $this->extractRelationship($mappedObject, $expectedSchemas);
+                $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $expectedSchemas);
                 if($relationship) {
                     $relationships[$schemaRelationship->getKey()] = $relationship;
                 }
             } else if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_MANY) {
                 // $mappedObject is an array of objects
                 foreach($mappedObject as $item) {
-                    $relationship = $this->extractRelationship($item, $expectedSchemas);
+                    $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $expectedSchemas);
                     if($relationship) {
                         $relationships[$schemaRelationship->getKey()][] = $relationship;
                     }
@@ -193,7 +205,7 @@ class EncoderService
         return $data;
     }
 
-    private function extractRelationship($mappedObject, array $expectedSchemas): ?array
+    private function extractRelationship($mappedObject, string $key, array $expectedSchemas): ?array
     {
         foreach($expectedSchemas as $expectedSchema) {
             if($this->schemaOptions->hasClassCompatibleSchema($expectedSchema, get_class($mappedObject))) {
@@ -206,12 +218,18 @@ class EncoderService
                 // Get the ID
                 $objectID = $schema->getResourceId($mappedObject);
 
-                // TODO: Condition for checking if included
-                // Add included resource only once
-                if(!isset($this->included[$objectType][$objectID])) {
+                // Push key to the walker array
+                array_push($this->includedWalker, $key);
+
+                // If included, add included resource only once
+                if(in_array(implode('.', $this->includedWalker), $this->includedKeys) &&
+                    !isset($this->included[$objectType][$objectID])) {
                     // Indexing by type and ID ensures a unique resource is included only once
                     $this->included[$objectType][$objectID] = $this->extractResource($mappedObject, $expectedSchema);
                 }
+
+                // Pop key from walker array
+                array_pop($this->includedWalker);
 
                 return [
                     "data" => [
