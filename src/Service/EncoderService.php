@@ -175,14 +175,14 @@ class EncoderService
                 // $mappedObject is a single object
                 $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $expectedSchemas);
                 if($relationship) {
-                    $relationships[$schemaRelationship->getKey()] = $relationship;
+                    $relationships[$schemaRelationship->getKey()]['data'] = $relationship;
                 }
             } else if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_MANY) {
                 // $mappedObject is an array of objects
                 foreach($mappedObject as $item) {
                     $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $expectedSchemas);
                     if($relationship) {
-                        $relationships[$schemaRelationship->getKey()][] = $relationship;
+                        $relationships[$schemaRelationship->getKey()]['data'][] = $relationship;
                     }
 
                 }
@@ -232,10 +232,8 @@ class EncoderService
                 array_pop($this->includedWalker);
 
                 return [
-                    "data" => [
-                        "type" => $objectType,
-                        "id" => $objectID
-                    ]
+                    "type" => $objectType,
+                    "id" => $objectID
                 ];
             }
         }
