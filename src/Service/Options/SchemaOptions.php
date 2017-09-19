@@ -19,9 +19,58 @@
 namespace Vallarj\JsonApi\Service\Options;
 
 
+use Vallarj\JsonApi\Exception\InvalidConfigurationException;
+use Vallarj\JsonApi\Schema\ResourceSchema;
+
 class SchemaOptions
 {
+    private $schemas;
+
     function __construct(array $options)
     {
+        $this->schemas = [];
+
+        foreach($options as $schema => $option) {
+            if(!isset($option['type']) || !isset($option['class'])) {
+                throw new InvalidConfigurationException("Keys 'type' and 'class' are required for schema configuration.");
+            }
+
+            $this->schemas[$schema] = [
+                'type' => $option['type'],
+                'class' => $option['class']
+            ];
+        }
+    }
+
+    public function hasClassCompatibleSchema(string $schemaClass, string $resourceClass): bool
+    {
+        if(!$this->hasCompatibleSchema($schemaClass)) {
+            return false;
+        }
+
+        return $this->schemas[$schemaClass]['class'] === $resourceClass;
+    }
+
+    public function hasTypeCompatibleSchema(string $schemaClass, string $resourceType): bool
+    {
+        if(!$this->hasCompatibleSchema($schemaClass)) {
+            return false;
+        }
+
+        return $this->schemas[$schemaClass]['type'] === $resourceType;
+    }
+
+    public function getResourceTypeBySchema(string $schemaClass): ?string
+    {
+        if(isset($this->schemas[$schemaClass])) {
+            return $this->schemas[$schemaClass]['type'];
+        }
+
+        return null;
+    }
+
+    private function hasCompatibleSchema(string $schemaClass): bool
+    {
+        return isset($this->schemas[$schemaClass]) && is_subclass_of($schemaClass, ResourceSchema::class);
     }
 }

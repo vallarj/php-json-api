@@ -66,7 +66,7 @@ class SchemaAttribute
      * @param $parentObject
      * @return mixed    The value of the attribute
      */
-    public function getAttribute($parentObject)
+    public function getValue($parentObject)
     {
         return $parentObject->{'get' . ucfirst($this->key)}();
     }
@@ -76,7 +76,7 @@ class SchemaAttribute
      * @param $parentObject
      * @param $value
      */
-    public function setAttribute($parentObject, $value): void
+    public function setValue($parentObject, $value): void
     {
         $parentObject->{'set' . ucfirst($this->key)}($value);
     }

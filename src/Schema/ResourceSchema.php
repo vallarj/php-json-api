@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class ResourceSchema extends ResourceIdentifierSchema
+class ResourceSchema
 {
     /** @var SchemaAttribute[] Attributes of this schema */
     private $attributes;
@@ -30,40 +30,18 @@ class ResourceSchema extends ResourceIdentifierSchema
     /** @var AbstractSchemaRelationship[] Relationships of this schema */
     private $relationships;
 
+    /** @var string The property name of the object's identifier*/
+    private $identifierPropertyName;
+
     /**
      * ResourceSchema constructor.
-     * @param string $resourceType      The resource type.
-     * @param string $class     The FQCN of the object to bind this schema to
+     * @param array $resourceSpecifications Specifications of the ResourceSchema
      */
-    function __construct(string $resourceType, string $class)
+    function __construct(array $resourceSpecifications = [])
     {
-        parent::__construct($resourceType, $class);
-
         $this->attributes = [];
         $this->relationships = [];
-    }
-
-    /**
-     * Construct a ResourceSchema from an array compatible
-     * with ResourceSchema builder specifications
-     * @param array $resourceSpecifications
-     * @return ResourceSchema
-     * @throws InvalidSpecificationException
-     */
-    public static function fromArray(array $resourceSpecifications)
-    {
-        // Resource type is required
-        if(!isset($resourceSpecifications['type'])) {
-            throw new InvalidSpecificationException("Index 'type' is required.");
-        }
-
-        // Resource bind class is required
-        if(!isset($resourceSpecifications['class'])) {
-            throw new InvalidSpecificationException("Index 'class' is required.");
-        }
-
-        // Create a new instance of ResourceSchema
-        $instance = new static($resourceSpecifications['type'], $resourceSpecifications['class']);
+        $this->identifierPropertyName = "id";
 
         // Create attributes
         if(isset($resourceSpecifications['attributes']) && is_array($resourceSpecifications['attributes'])) {
@@ -71,7 +49,7 @@ class ResourceSchema extends ResourceIdentifierSchema
 
             // Create an attribute for each spec given
             foreach($attributeSpecs as $item) {
-                $instance->addSchemaAttribute($item);
+                $this->addSchemaAttribute($item);
             }
         }
 
@@ -81,16 +59,51 @@ class ResourceSchema extends ResourceIdentifierSchema
 
             // Create a relationship for each spec given
             foreach($relationshipSpecs as $item) {
-                $instance->addSchemaRelationship($item);
+                $this->addSchemaRelationship($item);
             }
         }
 
         if(isset($resourceSpecifications['identifier'])) {
-            $instance->setIdentifierPropertyName($resourceSpecifications['identifier']);
+            $this->setIdentifierPropertyName($resourceSpecifications['identifier']);
         }
+    }
 
-        // Return the instance
-        return $instance;
+    /**
+     * Gets the identifier property name of the object to bind
+     * @return string
+     */
+    public function getIdentifierPropertyName(): string
+    {
+        return $this->identifierPropertyName;
+    }
+
+    /**
+     * Sets the identifier property name of the object to bind
+     * @param string $name
+     */
+    public function setIdentifierPropertyName(string $name)
+    {
+        $this->identifierPropertyName = $name;
+    }
+
+    /**
+     * Extracts the resource ID based on identifier property name
+     * @param $object
+     * @return mixed
+     */
+    public function getResourceId($object)
+    {
+        return $object->{'get' . ucfirst($this->getIdentifierPropertyName())}();
+    }
+
+    /**
+     * Sets the resource ID based on identifier property name
+     * @param $object
+     * @param $id
+     */
+    public function setResourceId($object, $id): void
+    {
+        $object->{'set' . ucfirst($this->getIdentifierPropertyName())}($id);
     }
 
     /**
@@ -104,10 +117,18 @@ class ResourceSchema extends ResourceIdentifierSchema
 
         foreach ($this->attributes as $schemaAttribute) {
             $key = $schemaAttribute->getKey();
-            $attributes[$key] = $schemaAttribute->getAttribute($object);
+            $attributes[$key] = $schemaAttribute->getValue($object);
         }
 
         return $attributes;
+    }
+
+    /**
+     * @return SchemaAttribute[]
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
     }
 
     /**
@@ -125,7 +146,7 @@ class ResourceSchema extends ResourceIdentifierSchema
         }
 
         $schemaAttribute = $this->attributes[$key];
-        $schemaAttribute->setAttribute($object, $value);
+        $schemaAttribute->setValue($object, $value);
         return true;
     }
 
@@ -149,6 +170,14 @@ class ResourceSchema extends ResourceIdentifierSchema
             // Must be a SchemaAttribute instance or a compatible array
             throw InvalidArgumentException::fromResourceSchemaAddSchemaAttribute();
         }
+    }
+
+    /**
+     * @return AbstractSchemaRelationship[]
+     */
+    public function getRelationships(): array
+    {
+        return $this->relationships;
     }
 
     /**

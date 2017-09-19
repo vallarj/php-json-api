@@ -108,6 +108,12 @@ abstract class AbstractSchemaRelationship
     }
 
     /**
+     * Returns the expected ResourceSchemas
+     * @return ResourceSchema[]
+     */
+    abstract public function getExpectedSchemas(): array;
+
+    /**
      * Returns true if the resource should be included in the document
      * @return bool
      */

@@ -85,25 +85,7 @@ class ResourceIdentifierSchema
         return $this->resourceType;
     }
 
-    /**
-     * Extracts the resource ID based on identifier property name
-     * @param $object
-     * @return mixed
-     */
-    public function getResourceId($object)
-    {
-        return $object->{'get' . ucfirst($this->getIdentifierPropertyName())}();
-    }
 
-    /**
-     * Sets the resource ID based on identifier property name
-     * @param $object
-     * @param $id
-     */
-    public function setResourceId($object, $id): void
-    {
-        $object->{'set' . ucfirst($this->getIdentifierPropertyName())}($id);
-    }
 
     /**
      * Gets the FQCN of the object bindable to this schema
@@ -114,21 +96,5 @@ class ResourceIdentifierSchema
         return $this->class;
     }
 
-    /**
-     * Sets the identifier property name of the object to bind
-     * @param string $name
-     */
-    public function setIdentifierPropertyName(string $name)
-    {
-        $this->identifierPropertyName = $name;
-    }
 
-    /**
-     * Gets the identifier property name of the object to bind
-     * @return string
-     */
-    public function getIdentifierPropertyName(): string
-    {
-        return $this->identifierPropertyName;
-    }
 }

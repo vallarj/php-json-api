@@ -82,7 +82,7 @@ class FlatSchemaRelationship extends AbstractSchemaRelationship
      */
     public function getRelationship($parentObject): array
     {
-        $relationship = $this->getMappedObject($parentObject);
+        $relationship = $parentObject->{'get' . ucfirst($this->mappedAs)}();
 
         if($this->getCardinality() === self::TO_ONE) {
             if(!$relationship) {
@@ -117,9 +117,17 @@ class FlatSchemaRelationship extends AbstractSchemaRelationship
     /**
      * @inheritdoc
      */
+    public function getExpectedSchemas(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getMappedObject($parentObject)
     {
-        return $parentObject->{'get' . ucfirst($this->mappedAs)}();
+        return null;
     }
 
     /**
@@ -169,7 +177,7 @@ class FlatSchemaRelationship extends AbstractSchemaRelationship
     protected function clearToManyRelationship($parentObject): bool
     {
         // Get current relationship IDs (expects an array)
-        $ids = $this->getMappedObject($parentObject);
+        $ids = $parentObject->{'get' . ucfirst($this->mappedAs)}();
 
         // Assumes parent object has a 'removeRelationship' method
         foreach($ids as $id) {

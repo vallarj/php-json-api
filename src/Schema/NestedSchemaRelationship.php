@@ -34,7 +34,11 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     private $included;
 
     /** @var ResourceIdentifierSchema[] Array of ResourceIdentifierSchema for each expected class */
+    // TODO: REMOVE
     private $expectedResources;
+
+    /** @var ResourceSchema[] Array of expected ResourceSchema */
+    private $expectedSchemas;
 
     /**
      * NestedSchemaRelationship constructor.
@@ -47,6 +51,7 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
         $this->mappedAs = "";
         $this->included = false;
         $this->expectedResources = [];
+        $this->expectedSchemas = [];
     }
 
     /**
@@ -182,6 +187,11 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
         return [
             "data" => $data
         ];
+    }
+
+    public function getExpectedSchemas(): array
+    {
+        return $this->expectedSchemas;
     }
 
     /**
