@@ -80,43 +80,6 @@ class FlatSchemaRelationship extends AbstractSchemaRelationship
     /**
      * @inheritdoc
      */
-    public function getRelationship($parentObject): array
-    {
-        $relationship = $parentObject->{'get' . ucfirst($this->mappedAs)}();
-
-        if($this->getCardinality() === self::TO_ONE) {
-            if(!$relationship) {
-                $data = null;
-            } else {
-                $data = [
-                    "type" => $this->type,
-                    "id" => $relationship
-                ];
-            }
-        } else if($this->getCardinality() === self::TO_MANY) {
-            $data = [];
-            foreach($relationship as $item) {
-                if(!$item) {
-                    continue;
-                } else {
-                    $data[] = [
-                        "type" => $this->type,
-                        "id" => $item
-                    ];
-                }
-            }
-        } else {
-            $data = null;
-        }
-
-        return [
-            "data" => $data
-        ];
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getExpectedSchemas(): array
     {
         return [];

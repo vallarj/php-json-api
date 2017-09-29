@@ -23,6 +23,7 @@ return [
         'factories' => [
             Service\DecoderService::class => Factory\Service\DecoderServiceFactory::class,
             Service\EncoderService::class => Factory\Service\EncoderServiceFactory::class,
+            Service\EncoderService::class => Factory\Service\EncoderServiceFactory::class,
         ],
     ],
 ];

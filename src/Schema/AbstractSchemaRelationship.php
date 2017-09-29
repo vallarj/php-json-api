@@ -108,8 +108,8 @@ abstract class AbstractSchemaRelationship
     }
 
     /**
-     * Returns the expected ResourceSchemas
-     * @return ResourceSchema[]
+     * Returns the FQCNs of the expected ResourceSchemas
+     * @return string[]
      */
     abstract public function getExpectedSchemas(): array;
 
@@ -131,13 +131,6 @@ abstract class AbstractSchemaRelationship
      * @return string
      */
     abstract public function getKey(): string;
-
-    /**
-     * Extracts the relationship from the parent object in JSON-decoded array form
-     * @param mixed $parentObject
-     * @return array
-     */
-    abstract public function getRelationship($parentObject): array;
 
     /**
      * Sets relationship if to-one cardinality

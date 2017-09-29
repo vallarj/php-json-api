@@ -32,12 +32,9 @@ class EncoderServiceFactory implements FactoryInterface
         // JSON API config variable
         $jsonapiConfig = $container->get('config')['jsonapi'] ?? [];
 
-        // Schema configuration
-        $schemaOptions = new SchemaOptions($jsonapiConfig['schemas'] ?? []);
-
         // Encoder configuration
         $encoderOptions = new EncoderServiceOptions($jsonapiConfig['encoder'] ?? []);
 
-        return new EncoderService($schemaOptions, $encoderOptions);
+        return new EncoderService($encoderOptions);
     }
 }

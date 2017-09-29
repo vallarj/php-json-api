@@ -289,6 +289,7 @@ class ResourceSchema
      * Returns an array of resource objects for inclusion
      * @param object $parentObject  The root object to extract the included resources from
      * @return array
+     * TODO: DEPRECATED
      */
     public function getIncludedObjects($parentObject): array
     {

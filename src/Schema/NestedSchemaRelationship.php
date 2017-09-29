@@ -33,11 +33,7 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     /** @var bool Specifies if relationship is to be included in the document */
     private $included;
 
-    /** @var ResourceIdentifierSchema[] Array of ResourceIdentifierSchema for each expected class */
-    // TODO: REMOVE
-    private $expectedResources;
-
-    /** @var ResourceSchema[] Array of expected ResourceSchema */
+    /** @var string[] Array of expected ResourceSchema FQCNs */
     private $expectedSchemas;
 
     /**
@@ -50,8 +46,6 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
         $this->key = "";
         $this->mappedAs = "";
         $this->included = false;
-        $this->expectedResources = [];
-        $this->expectedSchemas = [];
     }
 
     /**
@@ -71,19 +65,17 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
             $this->setCardinality($options['cardinality']);
         }
 
-        $this->included = isset($options['included']) ? $options['included'] : false;
-
         if(isset($options['expects'])) {
             $expects = $options['expects'];
 
             if(!is_array($expects)) {
-                throw new InvalidSpecificationException("Index 'expects' must be a compatible array.");
+                throw new InvalidSpecificationException("Index 'expects' must be a compatible array");
             }
 
-            foreach($expects as $schema) {
-                $this->expectedSchemas[] = $schema;
-            }
+            $this->expectedSchemas = $expects;
         }
+
+        $this->included = isset($options['included']) ? $options['included'] : false;
     }
 
     /**
@@ -113,81 +105,6 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
         $this->included = $included;
     }
 
-    /**
-     * Add a type mapping for the expected class name
-     * Replaces a class mapping if it already exists
-     * @param array|ResourceIdentifierSchema $resourceIdentifier
-     * @throws InvalidArgumentException
-     */
-    public function addExpectedResource($resourceIdentifier): void
-    {
-        if(!$resourceIdentifier instanceof ResourceIdentifierSchema) {
-            if(!is_array($resourceIdentifier)) {
-                throw InvalidArgumentException::fromNestedSchemaRelationshipAddExpectedResource();
-            }
-
-            $resourceIdentifier = ResourceIdentifierSchema::fromArray($resourceIdentifier);
-        }
-
-        $this->expectedResources[$resourceIdentifier->getClass()] = $resourceIdentifier;
-    }
-
-    /**
-     * Gets a resource mapping by type
-     * @param string $type
-     * @return null|ResourceIdentifierSchema
-     */
-    protected function getExpectedResourceByType(string $type): ?ResourceIdentifierSchema
-    {
-        foreach($this->expectedResources as $expectedResource) {
-            if($expectedResource->getResourceType() === $type) {
-                return $expectedResource;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getRelationship($parentObject): array
-    {
-        $relationship = $this->getMappedObject($parentObject);
-
-        if($this->getCardinality() === self::TO_ONE) {
-            if(!$relationship || !isset($this->expectedResources[get_class($relationship)])) {
-                $data = null;
-            } else {
-                $resourceIdentifier = $this->expectedResources[get_class($relationship)];
-
-                $data = [
-                    "type" => $resourceIdentifier->getResourceType(),
-                    "id" => $resourceIdentifier->getResourceId($relationship)
-                ];
-            }
-        } else if ($this->getCardinality() === self::TO_MANY) {
-            $data = [];
-            foreach($relationship as $item) {
-                if(!$item || !isset($this->expectedResources[get_class($item)])) {
-                    continue;
-                } else {
-                    $resourceIdentifier = $this->expectedResources[get_class($item)];
-
-                    $data[] = [
-                        "type" => $resourceIdentifier->getResourceType(),
-                        "id" => $resourceIdentifier->getResourceId($item)
-                    ];
-                }
-            }
-        } else {
-            $data = null;
-        }
-
-        return [
-            "data" => $data
-        ];
-    }
 
     public function getExpectedSchemas(): array
     {
