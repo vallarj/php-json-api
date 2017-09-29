@@ -163,30 +163,16 @@ class EncoderService
             // Get expected schemas
             $expectedSchemas = $schemaRelationship->getExpectedSchemas();
 
-            $relationshipSchema = null;
-            foreach($expectedSchemas as $schemaClass) {
-                $testSchema = $this->getResourceSchema($schemaClass);
-                if($testSchema->getMappingClass() == get_class($mappedObject)) {
-                    // Extract resource data
-                    $relationshipSchema = $testSchema;
-                    break;
-                }
-            }
-
-            if(!$relationshipSchema) {
-                continue;
-            }
-
             if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_ONE) {
                 // $mappedObject is a single object
-                $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $relationshipSchema);
+                $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $expectedSchemas);
                 if($relationship) {
                     $relationships[$schemaRelationship->getKey()]['data'] = $relationship;
                 }
             } else if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_MANY) {
                 // $mappedObject is an array of objects
                 foreach($mappedObject as $item) {
-                    $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $relationshipSchema);
+                    $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $expectedSchemas);
                     if($relationship) {
                         $relationships[$schemaRelationship->getKey()]['data'][] = $relationship;
                     }
@@ -211,9 +197,19 @@ class EncoderService
         return $data;
     }
 
-    private function extractRelationship($mappedObject, string $key, AbstractResourceSchema $relationshipSchema): ?array
+    private function extractRelationship($mappedObject, string $key, array $expectedSchemas): ?array
     {
-        if($relationshipSchema->getMappingClass() != get_class($mappedObject)) {
+        $relationshipSchema = null;
+        foreach($expectedSchemas as $schemaClass) {
+            $testSchema = $this->getResourceSchema($schemaClass);
+            if($testSchema->getMappingClass() == get_class($mappedObject)) {
+                // Extract resource data
+                $relationshipSchema = $testSchema;
+                break;
+            }
+        }
+
+        if(!$relationshipSchema || $relationshipSchema->getMappingClass() != get_class($mappedObject)) {
             return null;
         }
 
