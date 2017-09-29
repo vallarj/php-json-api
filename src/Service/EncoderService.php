@@ -19,7 +19,6 @@
 namespace Vallarj\JsonApi\Service;
 
 
-use function array_push;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\AbstractSchemaRelationship;
 use Vallarj\JsonApi\Schema\ResourceSchema;
@@ -31,10 +30,13 @@ class EncoderService
     private $schemaOptions;
     private $encoderOptions;
 
+    /** @var array Stores already instantiated ResourceSchemas */
     private $schemaCache;
 
+    /** @var array Keys of relationships to include in the current operation */
     private $includedKeys;
 
+    /** @var array Holds the keys of the current relationship being extracted and its parents */
     private $includedWalker;
 
     /** @var array Holds the data for the current operation */

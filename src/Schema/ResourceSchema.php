@@ -24,6 +24,12 @@ use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
 class ResourceSchema
 {
+    /** @var string Specifies the resource type */
+    private $resourceType;
+
+    /** @var string Specifies the FQCN of the object to hydrate using this schema */
+    private $class;
+
     /** @var SchemaAttribute[] Attributes of this schema */
     private $attributes;
 
@@ -42,6 +48,11 @@ class ResourceSchema
         $this->attributes = [];
         $this->relationships = [];
         $this->identifierPropertyName = "id";
+
+        // Set resource type
+        if(isset($resourceSpecifications['resourceType'])) {
+            $this->setResourceType($resourceSpecifications['resourceType']);
+        }
 
         // Create attributes
         if(isset($resourceSpecifications['attributes']) && is_array($resourceSpecifications['attributes'])) {
@@ -66,6 +77,26 @@ class ResourceSchema
         if(isset($resourceSpecifications['identifier'])) {
             $this->setIdentifierPropertyName($resourceSpecifications['identifier']);
         }
+    }
+
+    public function getResourceType(): string
+    {
+        return $this->resourceType;
+    }
+
+    public function setResourceType(string $resourceType): void
+    {
+        $this->resourceType = $resourceType;
+    }
+
+    public function getClass(): string
+    {
+        return $this->class;
+    }
+
+    public function setClass(string $class): void
+    {
+        $this->class = $class;
     }
 
     /**

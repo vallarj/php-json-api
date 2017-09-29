@@ -60,6 +60,15 @@ class SchemaOptions
         return $this->schemas[$schemaClass]['type'] === $resourceType;
     }
 
+    public function getResourceClassBySchema(string $schemaClass): ?string
+    {
+        if(isset($this->schemas[$schemaClass])) {
+            return $this->schemas[$schemaClass]['class'];
+        }
+
+        return null;
+    }
+
     public function getResourceTypeBySchema(string $schemaClass): ?string
     {
         if(isset($this->schemas[$schemaClass])) {
