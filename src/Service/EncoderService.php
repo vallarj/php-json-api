@@ -59,6 +59,7 @@ class EncoderService
     {
         $this->initializeService($includedKeys);
 
+
         if (is_object($resource)) {
             $this->encodeSingleResource($resource, $schemaClasses);
         } else if (is_array($resource)) {
@@ -96,12 +97,12 @@ class EncoderService
         $this->success = false;
     }
 
-    private function encodeSingleResource($resource, array $schemaClasses): void
+    private function encodeSingleResource($resource, array $schemas): void
     {
         $resourceClass = get_class($resource);
 
-        foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+        foreach($schemas as $schema) {
+            $schema = $this->getResourceSchema($schema);
             if($schema->getMappingClass() == $resourceClass) {
                 // Extract resource data
                 $this->data = $this->extractResource($resource, $schema);
@@ -147,7 +148,7 @@ class EncoderService
     {
         // Extract attributes
         $attributes = [];
-        $schemaAttributes = $schema->getSchemaAttributes();
+        $schemaAttributes = $schema->getAttributes();
         foreach($schemaAttributes as $schemaAttribute) {
             $key = $schemaAttribute->getKey();
             $attributes[$key] = $schemaAttribute->getValue($object);
@@ -155,7 +156,7 @@ class EncoderService
 
         // Extract relationships
         $relationships = [];
-        $schemaRelationships = $schema->getSchemaRelationships();
+        $schemaRelationships = $schema->getRelationships();
         foreach($schemaRelationships as $schemaRelationship) {
             // Get the mapped object
             $mappedObject = $schemaRelationship->getMappedObject($object);

@@ -34,35 +34,10 @@ abstract class AbstractResourceSchema
     protected $identifier = "id";
 
     /** @var SchemaAttribute[] Attributes of this schema */
-    private $attributes;
+    private $attributes = [];
 
     /** @var AbstractSchemaRelationship[] Relationships of this schema */
-    private $relationships;
-
-    /**
-     * AbstractResourceSchema constructor.
-     */
-    public function __construct()
-    {
-        $this->attributes = [];
-        $this->relationships = [];
-
-        // Create attributes
-        $attributeSpecs = $this->getAttributes();
-
-        // Create an attribute for each spec given
-        foreach($attributeSpecs as $item) {
-            $this->addSchemaAttribute($item);
-        }
-
-        // Create relationships
-        $relationshipSpecs = $this->getRelationships();
-
-        // Create relationship for each spec given
-        foreach($relationshipSpecs as $item) {
-            $this->addSchemaRelationship($item);
-        }
-    }
+    private $relationships = [];
 
     /**
      * Must return the resource type used by this schema
@@ -92,43 +67,6 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Must return an array of SchemaAttributes or a compatible SchemaAttribute specifications array
-     * @return array
-     */
-    public function getAttributes(): array
-    {
-        return [];
-    }
-
-    /**
-     * Must return an array of AbstractSchemaRelationship or a compatible
-     * AbstractSchemaRelationship specifications array
-     * @return array
-     */
-    public function getRelationships(): array
-    {
-        return [];
-    }
-
-    /**
-     * Returns the SchemaAttributes of this schema
-     * @return SchemaAttribute[]
-     */
-    final public function getSchemaAttributes(): array
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * Returns the AbstractSchemaRelationships of this schema
-     * @return AbstractSchemaRelationship[]
-     */
-    final public function getSchemaRelationships(): array
-    {
-        return $this->relationships;
-    }
-
-    /**
      * Extracts the resource ID based on identifier property name
      * @param $object
      * @return mixed
@@ -139,13 +77,22 @@ abstract class AbstractResourceSchema
     }
 
     /**
+     * Returns the SchemaAttributes of this schema
+     * @return SchemaAttribute[]
+     */
+    final public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
      * Add a SchemaAttribute
      * If an attribute in the array with the same key exists, it will be replaced.
      * @param $attribute SchemaAttribute|array $attribute   If argument is an array, it must be compatible
      *                                                      with SchemaAttribute specifications array.
      * @throws InvalidArgumentException
      */
-    private function addSchemaAttribute($attribute): void
+    final public function addAttribute($attribute): void
     {
         if(!$attribute instanceof SchemaAttribute) {
             if(is_array($attribute)) {
@@ -161,6 +108,15 @@ abstract class AbstractResourceSchema
     }
 
     /**
+     * Returns the AbstractSchemaRelationships of this schema
+     * @return AbstractSchemaRelationship[]
+     */
+    final public function getRelationships(): array
+    {
+        return $this->relationships;
+    }
+
+    /**
      * Add an AbstractSchemaRelationship
      * If a relationship in the array with the same key exists, it will be replaced.
      * @param AbstractSchemaRelationship|array $relationship    If argument is an array, it must be compatible with
@@ -168,7 +124,7 @@ abstract class AbstractResourceSchema
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException
      */
-    private function addSchemaRelationship($relationship): void
+    final public function addRelationship($relationship): void
     {
         if(!$relationship instanceof AbstractSchemaRelationship) {
             if(is_array($relationship)) {
