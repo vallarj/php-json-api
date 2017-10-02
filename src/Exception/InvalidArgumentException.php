@@ -34,7 +34,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      */
     public static function fromResourceSchemaAddSchemaAttribute()
     {
-        return new self("Argument must be an instance of SchemaAttribute or an array compatible " .
+        return new self("Argument must be an instance of Attribute or an array compatible " .
             "with schema attribute builder specifications");
     }
 
@@ -45,7 +45,7 @@ class InvalidArgumentException extends \InvalidArgumentException
      */
     public static function fromResourceSchemaAddRelationship()
     {
-        return new self("Argument must be an instance of NestedSchemaRelationship or an array " .
+        return new self("Argument must be an instance of NestedRelationship or an array " .
             "compatible with schema relationship builder specifications");
     }
 
@@ -68,7 +68,7 @@ class InvalidArgumentException extends \InvalidArgumentException
     public static function fromAbstractSchemaRelationshipSetCardinality()
     {
         return new self("Argument must be one of:" .
-            "AbstractSchemaRelationship::TO_ONE, AbstractSchemaRelationship::TO_MANY");
+            "AbstractRelationship::TO_ONE, AbstractRelationship::TO_MANY");
     }
 
     public static function fromAbstractSchemaRelationshipSetRelationship()

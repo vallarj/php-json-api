@@ -21,7 +21,7 @@ namespace Vallarj\JsonApi\Service;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
-use Vallarj\JsonApi\Schema\AbstractSchemaRelationship;
+use Vallarj\JsonApi\Schema\AbstractRelationship;
 use Vallarj\JsonApi\Service\Options\EncoderServiceOptions;
 
 class EncoderService
@@ -97,12 +97,12 @@ class EncoderService
         $this->success = false;
     }
 
-    private function encodeSingleResource($resource, array $schemas): void
+    private function encodeSingleResource($resource, array $schemaClasses): void
     {
         $resourceClass = get_class($resource);
 
-        foreach($schemas as $schema) {
-            $schema = $this->getResourceSchema($schema);
+        foreach($schemaClasses as $schemaClass) {
+            $schema = $this->getResourceSchema($schemaClass);
             if($schema->getMappingClass() == $resourceClass) {
                 // Extract resource data
                 $this->data = $this->extractResource($resource, $schema);
@@ -164,13 +164,13 @@ class EncoderService
             // Get expected schemas
             $expectedSchemas = $schemaRelationship->getExpectedSchemas();
 
-            if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_ONE) {
+            if($schemaRelationship->getCardinality() === AbstractRelationship::TO_ONE) {
                 // $mappedObject is a single object
                 $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $expectedSchemas);
                 if($relationship) {
                     $relationships[$schemaRelationship->getKey()]['data'] = $relationship;
                 }
-            } else if($schemaRelationship->getCardinality() === AbstractSchemaRelationship::TO_MANY) {
+            } else if($schemaRelationship->getCardinality() === AbstractRelationship::TO_MANY) {
                 // $mappedObject is an array of objects
                 foreach($mappedObject as $item) {
                     $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $expectedSchemas);
@@ -200,25 +200,25 @@ class EncoderService
 
     private function extractRelationship($mappedObject, string $key, array $expectedSchemas): ?array
     {
-        $relationshipSchema = null;
+        $schema = null;
         foreach($expectedSchemas as $schemaClass) {
             $testSchema = $this->getResourceSchema($schemaClass);
             if($testSchema->getMappingClass() == get_class($mappedObject)) {
                 // Extract resource data
-                $relationshipSchema = $testSchema;
+                $schema = $testSchema;
                 break;
             }
         }
 
-        if(!$relationshipSchema || $relationshipSchema->getMappingClass() != get_class($mappedObject)) {
+        if(!$schema) {
             return null;
         }
 
         // Get the resource type
-        $resourceType = $relationshipSchema->getResourceType();
+        $resourceType = $schema->getResourceType();
 
         // Get the ID
-        $resourceId = $relationshipSchema->getResourceId($mappedObject);
+        $resourceId = $schema->getResourceId($mappedObject);
 
         // Push key to the walker array
         array_push($this->includedWalker, $key);
@@ -227,7 +227,7 @@ class EncoderService
         if(in_array(implode('.', $this->includedWalker), $this->includedKeys) &&
             !isset($this->included[$resourceType][$resourceId])) {
             // Indexing by type and ID ensures a unique resource is included only once
-            $this->included[$resourceType][$resourceId] = $this->extractResource($mappedObject, $relationshipSchema);
+            $this->included[$resourceType][$resourceId] = $this->extractResource($mappedObject, $schema);
         }
 
         // Pop key from walker array

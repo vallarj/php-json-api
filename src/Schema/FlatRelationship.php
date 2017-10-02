@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi\Schema;
 
 
-class FlatSchemaRelationship extends AbstractSchemaRelationship
+class FlatRelationship extends AbstractRelationship
 {
     /** @var string Specifies the relationship key */
     private $key;
@@ -67,14 +67,6 @@ class FlatSchemaRelationship extends AbstractSchemaRelationship
     public function getKey(): string
     {
         return $this->key;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isIncluded(): bool
-    {
-        return false;
     }
 
     /**

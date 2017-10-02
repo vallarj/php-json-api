@@ -20,9 +20,8 @@ namespace Vallarj\JsonApi\Service;
 
 
 use Vallarj\JsonApi\Exception\InvalidFormatException;
-use Vallarj\JsonApi\Schema\ResourceSchema;
+use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Service\Options\DecoderServiceOptions;
-use Vallarj\JsonApi\Service\Options\SchemaOptions;
 
 class DecoderService
 {
@@ -30,7 +29,6 @@ class DecoderService
     const RETURN_ID             =   1;
     const RETURN_TYPE_ID        =   2;
 
-    private $schemaOptions;
     private $decoderOptions;
 
     private $schemaCache;
@@ -41,9 +39,8 @@ class DecoderService
 
     private $validationErrors;
 
-    function __construct(SchemaOptions $schemaOptions, DecoderServiceOptions $decoderOptions)
+    function __construct(DecoderServiceOptions $decoderOptions)
     {
-        $this->schemaOptions = $schemaOptions;
         $this->decoderOptions = $decoderOptions;
 
         $this->schemaCache = [];
@@ -149,11 +146,13 @@ class DecoderService
             throw new InvalidFormatException("Resource 'type' is required");
         }
 
+        $resourceType = $data['type'];
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
-            if($this->schemaOptions->hasTypeCompatibleSchema($schemaClass, $data['type'])) {
-                $compatibleSchema = $schemaClass;
+            $schema = $this->getResourceSchema($schemaClass);
+            if($schema->getResourceType() == $resourceType) {
+                $compatibleSchema = $schema;
                 break;
             }
         }
@@ -177,7 +176,7 @@ class DecoderService
 
     }
 
-    private function getResourceSchema(string $schemaClass): ResourceSchema
+    private function getResourceSchema(string $schemaClass): AbstractResourceSchema
     {
         if(!isset($this->schemaCache[$schemaClass])) {
             $this->schemaCache[$schemaClass] = new $schemaClass;
@@ -186,7 +185,7 @@ class DecoderService
         return $this->schemaCache[$schemaClass];
     }
 
-    private function createMappedResource(array $data, string $schemaClass, int $returnType)
+    private function createMappedResource(array $data, AbstractResourceSchema $schema, int $returnType)
     {
         switch($returnType) {
             case self::RETURN_ID:
@@ -197,15 +196,13 @@ class DecoderService
                 break;
             case self::RETURN_OBJECT:
             default:
-                return $this->createResourceObject($data, $schemaClass);
+                return $this->createResourceObject($data, $schema);
                 break;
         }
     }
 
-    private function createResourceObject(array $data, string $schemaClass)
+    private function createResourceObject(array $data, AbstractResourceSchema $schema)
     {
-        $schema = $this->getResourceSchema($schemaClass);
-
         $resourceType = $data['type'];
         $resourceId = $data['id'] ?? null;
 
@@ -215,7 +212,7 @@ class DecoderService
         }
 
         // Get the resource class
-        $resourceClass = $this->schemaOptions->getResourceClassBySchema($schemaClass);
+        $resourceClass = $schema->getMappingClass();
 
         // Create the object
         $object = new $resourceClass;
@@ -226,9 +223,15 @@ class DecoderService
         // Set attributes
         if (isset($data['attributes'])) {
             $attributes = $data['attributes'];
+            $schemaAttributes = $schema->getAttributes();
 
-            foreach ($attributes as $key => $value) {
-                if ($schema->setResourceAttribute($object, $key, $value)) {
+            foreach($schemaAttributes as $schemaAttribute) {
+                $key = $schemaAttribute->getKey();
+
+                if(isset($attributes[$key])) {
+                    $value = $attributes[$key];
+                    // TODO: Validate here.
+                    $schemaAttribute->setValue($object, $value);
                     $this->modifiedProperties[] = $key;
                 }
             }
@@ -237,13 +240,31 @@ class DecoderService
         // Set relationships
         if (isset($data['relationships'])) {
             $relationships = $data['relationships'];
+            $schemaRelationships = $schema->getRelationships();
 
-            if (!is_array($relationships)) {
+            if(!is_array($relationships)) {
                 throw new InvalidFormatException("Invalid format for relationships.");
             }
 
+            foreach($schemaRelationships as $schemaRelationship) {
+                $key = $schemaRelationship->getKey();
+
+                if(isset($relationships[$key])) {
+                    $relationship = $relationships[$key];
+                    if(!array_key_exists('data', $relationship)) {
+                        throw new InvalidFormatException("Key 'data' required for relationships");
+                    }
+
+                    $relationshipData = $relationship['data'];
+
+                    if(is_null($relationshipData)) {
+                        // Null relationship data implies has-one relationship
+                        //if($schema->setResourceRelationship)
+                    }
+                }
+            }
+
             foreach ($relationships as $key => $relationship) {
-                var_dump($key);
                 if (!array_key_exists('data', $relationship)) {
                     throw new InvalidFormatException("Key 'data' required for relationships");
                 }

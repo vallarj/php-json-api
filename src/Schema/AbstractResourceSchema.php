@@ -33,10 +33,10 @@ abstract class AbstractResourceSchema
     /** @var string The property name of the object's identifier */
     protected $identifier = "id";
 
-    /** @var SchemaAttribute[] Attributes of this schema */
+    /** @var Attribute[] Attributes of this schema */
     private $attributes = [];
 
-    /** @var AbstractSchemaRelationship[] Relationships of this schema */
+    /** @var AbstractRelationship[] Relationships of this schema */
     private $relationships = [];
 
     /**
@@ -77,8 +77,18 @@ abstract class AbstractResourceSchema
     }
 
     /**
+     * Sets the resource ID based on identifier property name
+     * @param $object
+     * @param mixed $id
+     */
+    final public function setResourceId($object, $id): void
+    {
+        $object->{'set' . ucfirst($this->getIdentifierPropertyName())}($id);
+    }
+
+    /**
      * Returns the SchemaAttributes of this schema
-     * @return SchemaAttribute[]
+     * @return Attribute[]
      */
     final public function getAttributes(): array
     {
@@ -86,19 +96,19 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Add a SchemaAttribute
+     * Add a Attribute
      * If an attribute in the array with the same key exists, it will be replaced.
-     * @param $attribute SchemaAttribute|array $attribute   If argument is an array, it must be compatible
-     *                                                      with SchemaAttribute specifications array.
+     * @param $attribute Attribute|array $attribute   If argument is an array, it must be compatible
+     *                                                      with Attribute specifications array.
      * @throws InvalidArgumentException
      */
     final public function addAttribute($attribute): void
     {
-        if(!$attribute instanceof SchemaAttribute) {
+        if(!$attribute instanceof Attribute) {
             if(is_array($attribute)) {
-                $attribute = SchemaAttribute::fromArray($attribute);
+                $attribute = Attribute::fromArray($attribute);
             } else {
-                // Must be a SchemaAttribute instance or a compatible array
+                // Must be a Attribute instance or a compatible array
                 throw InvalidArgumentException::fromResourceSchemaAddSchemaAttribute();
             }
         }
@@ -109,7 +119,7 @@ abstract class AbstractResourceSchema
 
     /**
      * Returns the AbstractSchemaRelationships of this schema
-     * @return AbstractSchemaRelationship[]
+     * @return AbstractRelationship[]
      */
     final public function getRelationships(): array
     {
@@ -117,16 +127,16 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Add an AbstractSchemaRelationship
+     * Add an AbstractRelationship
      * If a relationship in the array with the same key exists, it will be replaced.
-     * @param AbstractSchemaRelationship|array $relationship    If argument is an array, it must be compatible with
-     *                                                          the AbstractSchemaRelationship specifications array
+     * @param AbstractRelationship|array $relationship    If argument is an array, it must be compatible with
+     *                                                          the AbstractRelationship specifications array
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException
      */
     final public function addRelationship($relationship): void
     {
-        if(!$relationship instanceof AbstractSchemaRelationship) {
+        if(!$relationship instanceof AbstractRelationship) {
             if(is_array($relationship)) {
                 if(!isset($relationship["bindType"]) || !is_string($relationship["bindType"])) {
                     throw new InvalidSpecificationException("Index 'bindType' is required");
@@ -139,12 +149,12 @@ abstract class AbstractResourceSchema
                 $bindType = $relationship['bindType'];
                 $options = $relationship['options'];
 
-                if(!is_subclass_of($bindType, AbstractSchemaRelationship::class)) {
+                if(!is_subclass_of($bindType, AbstractRelationship::class)) {
                     throw new InvalidSpecificationException("Index 'bindType' must be a class that extends ".
-                        "AbstractSchemaRelationship");
+                        "AbstractRelationship");
                 }
 
-                /** @var AbstractSchemaRelationship $relationship */
+                /** @var AbstractRelationship $relationship */
                 $relationship = new $bindType;
                 $relationship->setOptions($options);
             } else {

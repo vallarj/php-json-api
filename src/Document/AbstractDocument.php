@@ -21,8 +21,8 @@ namespace Vallarj\JsonApi\Document;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\ResourceSchema;
-use Vallarj\JsonApi\Schema\SchemaAttribute;
-use Vallarj\JsonApi\Schema\NestedSchemaRelationship;
+use Vallarj\JsonApi\Schema\Attribute;
+use Vallarj\JsonApi\Schema\NestedRelationship;
 
 abstract class AbstractDocument
 {

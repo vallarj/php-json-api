@@ -32,12 +32,9 @@ class DecoderServiceFactory implements FactoryInterface
         // JSON API config variable
         $jsonapiConfig = $container->get('config')['jsonapi'] ?? [];
 
-        // Schema configuration
-        $schemaOptions = new SchemaOptions($jsonapiConfig['schemas'] ?? []);
-
         // Decoder configuration
         $decoderOptions = new DecoderServiceOptions($jsonapiConfig['decoder'] ?? []);
 
-        return new DecoderService($schemaOptions, $decoderOptions);
+        return new DecoderService($decoderOptions);
     }
 }

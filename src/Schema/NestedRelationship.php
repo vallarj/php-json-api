@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-class NestedSchemaRelationship extends AbstractSchemaRelationship
+class NestedRelationship extends AbstractRelationship
 {
     /** @var string Specifies the key of the relationship */
     private $key;
@@ -30,14 +30,11 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     /** @var string Specifies the property name of the mapped relationship */
     private $mappedAs;
 
-    /** @var bool Specifies if relationship is to be included in the document */
-    private $included;
-
     /** @var string[] Array of expected ResourceSchema FQCNs */
     private $expectedSchemas;
 
     /**
-     * NestedSchemaRelationship constructor.
+     * NestedRelationship constructor.
      */
     function __construct()
     {
@@ -45,7 +42,6 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
 
         $this->key = "";
         $this->mappedAs = "";
-        $this->included = false;
     }
 
     /**
@@ -74,8 +70,6 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
 
             $this->expectedSchemas = $expects;
         }
-
-        $this->included = isset($options['included']) ? $options['included'] : false;
     }
 
     /**
@@ -86,25 +80,6 @@ class NestedSchemaRelationship extends AbstractSchemaRelationship
     {
         return $this->key;
     }
-
-    /**
-     * Checks if this relationship is to be included in the document
-     * @return bool
-     */
-    public function isIncluded(): bool
-    {
-        return $this->included;
-    }
-
-    /**
-     * Sets whether or not this relationship is going to be included in the document
-     * @param bool $included
-     */
-    public function setIncluded(bool $included): void
-    {
-        $this->included = $included;
-    }
-
 
     public function getExpectedSchemas(): array
     {

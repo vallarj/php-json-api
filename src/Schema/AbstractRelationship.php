@@ -21,7 +21,7 @@ namespace Vallarj\JsonApi\Schema;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 
-abstract class AbstractSchemaRelationship
+abstract class AbstractRelationship
 {
     const TO_ONE    =   "toOne";
     const TO_MANY   =   "toMany";
@@ -30,7 +30,7 @@ abstract class AbstractSchemaRelationship
     private $cardinality;
 
     /**
-     * AbstractSchemaRelationship constructor.
+     * AbstractRelationship constructor.
      */
     function __construct()
     {
@@ -48,7 +48,7 @@ abstract class AbstractSchemaRelationship
 
     /**
      * Sets the cardinality of the relationship. Must be one of
-     * AbstractSchemaRelationship::TO_ONE, AbstractSchemaRelationship::TO_MANY
+     * AbstractRelationship::TO_ONE, AbstractRelationship::TO_MANY
      * @param string $cardinality
      */
     public function setCardinality(string $cardinality): void
@@ -112,12 +112,6 @@ abstract class AbstractSchemaRelationship
      * @return string[]
      */
     abstract public function getExpectedSchemas(): array;
-
-    /**
-     * Returns true if the resource should be included in the document
-     * @return bool
-     */
-    abstract public function isIncluded(): bool;
 
     /**
      * Set options of this specification.
