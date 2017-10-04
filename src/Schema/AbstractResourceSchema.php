@@ -36,7 +36,7 @@ abstract class AbstractResourceSchema
     /** @var Attribute[] Attributes of this schema */
     private $attributes = [];
 
-    /** @var AbstractRelationship[] Relationships of this schema */
+    /** @var array Relationships of this schema */
     private $relationships = [];
 
     /**
