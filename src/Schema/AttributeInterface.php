@@ -19,37 +19,31 @@
 namespace Vallarj\JsonApi\Schema;
 
 
-interface ToManyRelationshipInterface
+interface AttributeInterface
 {
     /**
-     * Set options of this specification.
-     * @param array $options    Array that contains the options for this specification.
+     * Set options of this specification
+     * @param array $options    Array that contains the options for this specification
      */
     public function setOptions(array $options): void;
 
     /**
-     * Gets the key of the relationship
+     * Returns the attribute key.
      * @return string
      */
     public function getKey(): string;
 
     /**
-     * Returns an array of FQCNs of the expected AbstractResourceSchema
-     * @return array
+     * Returns the value of the attribute
+     * @param mixed $parentObject   The target object to get the attribute value from
+     * @return mixed                The value of the attribute
      */
-    public function getExpectedSchemas(): array;
+    public function getValue($parentObject);
 
     /**
-     * Gets the collection of mapped objects
-     * @param mixed $parentObject   The parent object to get the relationship collection from
-     * @return array
+     * Sets the value of the attribute
+     * @param mixed $parentObject   The target object in which the attribute value is to be set
+     * @param $value
      */
-    public function getCollection($parentObject): array;
-
-    /**
-     * Adds an object to the collection of mapped objects
-     * @param mixed $parentObject   The parent object in which the relationship object will be added
-     * @param mixed $object
-     */
-    public function addItem($parentObject, $object): void;
+    public function setValue($parentObject, $value): void;
 }

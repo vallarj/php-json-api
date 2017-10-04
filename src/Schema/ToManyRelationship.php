@@ -35,7 +35,7 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /**
      * @inheritdoc
      */
-    public function setOptions(array $options)
+    public function setOptions(array $options): void
     {
         if(isset($options['key'])) {
             $this->key = $this->mappedAs = $options['key'];

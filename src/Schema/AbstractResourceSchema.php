@@ -101,15 +101,38 @@ abstract class AbstractResourceSchema
      * @param $attribute Attribute|array $attribute   If argument is an array, it must be compatible
      *                                                      with Attribute specifications array.
      * @throws InvalidArgumentException
+     * @throws InvalidSpecificationException
      */
     final public function addAttribute($attribute): void
     {
         if(!$attribute instanceof Attribute) {
             if(is_array($attribute)) {
-                $attribute = Attribute::fromArray($attribute);
+                if(!isset($attribute['type']) || !is_string($attribute['type'])) {
+                    throw new InvalidSpecificationException("Index 'type' is required");
+                }
+
+                $type = $attribute['type'];
+                $options = $attribute['options'] ?? null;
+
+                if(!is_subclass_of($type, AttributeInterface::class)) {
+                    throw new InvalidSpecificationException("Index 'type' must be a class that implements " .
+                        "AttributeInterface");
+                }
+
+                /** @var AttributeInterface $attribute */
+                $attribute = new $type;
+
+                if($options) {
+                    if(!is_array($options)) {
+                        throw new InvalidSpecificationException("Index 'options' must be a compatible array");
+                    }
+
+                    $attribute->setOptions($options);
+                }
             } else {
-                // Must be a Attribute instance or a compatible array
-                throw InvalidArgumentException::fromResourceSchemaAddSchemaAttribute();
+                // Must be a AttributeInterface instance or a compatible array
+                throw new InvalidArgumentException("Argument must be an instance of AttributeInterface or an array " .
+                    "compatible with schema attribute builder specifications");
             }
         }
 
@@ -149,7 +172,7 @@ abstract class AbstractResourceSchema
 
                 if(!is_subclass_of($type, ToOneRelationshipInterface::class) &&
                     !is_subclass_of($type, ToManyRelationshipInterface::class)) {
-                    throw new InvalidSpecificationException("Index 'bindType' must be a class that implements " .
+                    throw new InvalidSpecificationException("Index 'type' must be a class that implements " .
                         "ToOneRelationshipInterface or ToManyRelationshipInterface");
                 }
 

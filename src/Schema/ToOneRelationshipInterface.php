@@ -24,9 +24,8 @@ interface ToOneRelationshipInterface
     /**
      * Set options of this specification.
      * @param array $options    Array that contains the options for this specification.
-     * @return mixed
      */
-    public function setOptions(array $options);
+    public function setOptions(array $options): void;
 
     /**
      * Gets the key of the relationship

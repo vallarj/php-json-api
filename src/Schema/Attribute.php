@@ -19,42 +19,23 @@
 namespace Vallarj\JsonApi\Schema;
 
 
-use Vallarj\JsonApi\Exception\InvalidSpecificationException;
-
-class Attribute
+class Attribute implements AttributeInterface
 {
     /** @var string Specifies the key of the attribute */
-    private $key;
+    private $key = "";
 
     /**
-     * Attribute constructor.
-     * @param string $key   The attribute key
+     * @inheritdoc
      */
-    function __construct(string $key)
+    public function setOptions(array $options): void
     {
-        $this->key = $key;
-    }
-
-    /**
-     * Construct a Attribute from an array compatible
-     * with schema attribute builder specifications
-     * @param array $attributeSpecifications
-     * @return Attribute
-     * @throws InvalidSpecificationException
-     */
-    public static function fromArray(array $attributeSpecifications): Attribute
-    {
-        if(!isset($attributeSpecifications['key'])) {
-            throw new InvalidSpecificationException("Index 'key' is required");
+        if(isset($options['key'])) {
+            $this->key = $options['key'];
         }
-
-        $instance = new self($attributeSpecifications['key']);
-        return $instance;
     }
 
     /**
-     * Returns the attribute key.
-     * @return string
+     * @inheritdoc
      */
     public function getKey(): string
     {
@@ -62,9 +43,7 @@ class Attribute
     }
 
     /**
-     * Returns the value of the attribute
-     * @param $parentObject
-     * @return mixed    The value of the attribute
+     * @inheritdoc
      */
     public function getValue($parentObject)
     {
@@ -72,9 +51,7 @@ class Attribute
     }
 
     /**
-     * Sets the value of the attribute
-     * @param $parentObject
-     * @param $value
+     * @inheritdoc
      */
     public function setValue($parentObject, $value): void
     {
