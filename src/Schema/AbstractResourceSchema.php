@@ -142,6 +142,7 @@ abstract class AbstractResourceSchema
                     throw new InvalidSpecificationException("Index 'bindType' is required");
                 }
 
+                // TODO: Options must be optional
                 if(!isset($relationship["options"]) && !is_array($relationship['options'])) {
                     throw new InvalidSpecificationException("Index 'options' must be a compatible array");
                 }
