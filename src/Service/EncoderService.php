@@ -21,7 +21,8 @@ namespace Vallarj\JsonApi\Service;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
-use Vallarj\JsonApi\Schema\AbstractRelationship;
+use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
+use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 use Vallarj\JsonApi\Service\Options\EncoderServiceOptions;
 
 class EncoderService
@@ -158,26 +159,25 @@ class EncoderService
         $relationships = [];
         $schemaRelationships = $schema->getRelationships();
         foreach($schemaRelationships as $schemaRelationship) {
-            // Get the mapped object
-            $mappedObject = $schemaRelationship->getMappedObject($object);
+            if($schemaRelationship instanceof ToOneRelationshipInterface) {
+                $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                $mappedObject = $schemaRelationship->getObject($object);
+                $key = $schemaRelationship->getKey();
 
-            // Get expected schemas
-            $expectedSchemas = $schemaRelationship->getExpectedSchemas();
-
-            if($schemaRelationship->getCardinality() === AbstractRelationship::TO_ONE) {
-                // $mappedObject is a single object
-                $relationship = $this->extractRelationship($mappedObject, $schemaRelationship->getKey(), $expectedSchemas);
+                $relationship = $this->extractRelationship($mappedObject, $key, $expectedSchemas);
                 if($relationship) {
-                    $relationships[$schemaRelationship->getKey()]['data'] = $relationship;
+                    $relationships[$key]['data'] = $relationship;
                 }
-            } else if($schemaRelationship->getCardinality() === AbstractRelationship::TO_MANY) {
-                // $mappedObject is an array of objects
-                foreach($mappedObject as $item) {
-                    $relationship = $this->extractRelationship($item, $schemaRelationship->getKey(), $expectedSchemas);
-                    if($relationship) {
-                        $relationships[$schemaRelationship->getKey()]['data'][] = $relationship;
-                    }
+            } else if($schemaRelationship instanceof ToManyRelationshipInterface) {
+                $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                $collection = $schemaRelationship->getCollection($object);
+                $key = $schemaRelationship->getKey();
 
+                foreach($collection as $mappedObject) {
+                    $relationship = $this->extractRelationship($mappedObject, $key, $expectedSchemas);
+                    if($relationship) {
+                        $relationships[$key]['data'][] = $relationship;
+                    }
                 }
             }
         }

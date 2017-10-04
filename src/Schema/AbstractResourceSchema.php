@@ -118,8 +118,8 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Returns the AbstractSchemaRelationships of this schema
-     * @return AbstractRelationship[]
+     * Returns the relationships of this schema
+     * @return array
      */
     final public function getRelationships(): array
     {
@@ -127,39 +127,46 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Add an AbstractRelationship
+     * Add a relationship specification
      * If a relationship in the array with the same key exists, it will be replaced.
-     * @param AbstractRelationship|array $relationship    If argument is an array, it must be compatible with
+     * @param ToOneRelationshipInterface|ToManyRelationshipInterface|array $relationship
+     *                                                          If argument is an array, it must be compatible with
      *                                                          the AbstractRelationship specifications array
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException
      */
     final public function addRelationship($relationship): void
     {
-        if(!$relationship instanceof AbstractRelationship) {
+        if(!$relationship instanceof ToOneRelationshipInterface &&
+            !$relationship instanceof ToManyRelationshipInterface) {
             if(is_array($relationship)) {
-                if(!isset($relationship["bindType"]) || !is_string($relationship["bindType"])) {
-                    throw new InvalidSpecificationException("Index 'bindType' is required");
+                if(!isset($relationship["type"]) || !is_string($relationship["type"])) {
+                    throw new InvalidSpecificationException("Index 'type' is required");
                 }
 
-                // TODO: Options must be optional
-                if(!isset($relationship["options"]) && !is_array($relationship['options'])) {
-                    throw new InvalidSpecificationException("Index 'options' must be a compatible array");
+                $type = $relationship['type'];
+                $options = $relationship['options'] ?? null;
+
+                if(!is_subclass_of($type, ToOneRelationshipInterface::class) &&
+                    !is_subclass_of($type, ToManyRelationshipInterface::class)) {
+                    throw new InvalidSpecificationException("Index 'bindType' must be a class that implements " .
+                        "ToOneRelationshipInterface or ToManyRelationshipInterface");
                 }
 
-                $bindType = $relationship['bindType'];
-                $options = $relationship['options'];
+                /** @var ToOneRelationshipInterface|ToManyRelationshipInterface $relationship */
+                $relationship = new $type;
 
-                if(!is_subclass_of($bindType, AbstractRelationship::class)) {
-                    throw new InvalidSpecificationException("Index 'bindType' must be a class that extends ".
-                        "AbstractRelationship");
+                if($options) {
+                    if(!is_array($options)) {
+                        throw new InvalidSpecificationException("Index 'options' must be a compatible array");
+                    }
+
+                    $relationship->setOptions($options);
                 }
-
-                /** @var AbstractRelationship $relationship */
-                $relationship = new $bindType;
-                $relationship->setOptions($options);
             } else {
-                throw InvalidArgumentException::fromResourceSchemaAddRelationship();
+                throw new InvalidArgumentException("Argument must be an instance of ToOneRelationshipInterface, " .
+                    "ToManyRelationshipInterface, or an array " .
+                    "compatible with schema relationship specifications");
             }
         }
 
