@@ -52,4 +52,10 @@ interface ToOneRelationshipInterface
      * @param mixed $object         The relationship object
      */
     public function setObject($parentObject, $object): void;
+
+    /**
+     * Clears the relationship mapped by this specification
+     * @param mixed $parentObject   The target object in which the relationship will be cleared
+     */
+    public function clearObject($parentObject): void;
 }

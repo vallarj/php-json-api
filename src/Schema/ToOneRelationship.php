@@ -87,4 +87,12 @@ class ToOneRelationship implements ToOneRelationshipInterface
     {
         $parentObject->{'set' . ucfirst($this->mappedAs)}($object);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function clearObject($parentObject): void
+    {
+        $parentObject->{'set' . ucfirst($this->mappedAs)}(null);
+    }
 }

@@ -87,4 +87,17 @@ class ToManyRelationship implements ToManyRelationshipInterface
     {
         $parentObject->{'add' . ucfirst($this->mappedAs)}($object);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function clearCollection($parentObject): void
+    {
+        $collection = $this->getCollection($parentObject);
+
+        // Assumes there is a remove function
+        foreach($collection as $item) {
+            $parentObject->{'remove' . ucfirst($this->mappedAs)}();
+        }
+    }
 }

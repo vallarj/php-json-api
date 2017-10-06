@@ -52,4 +52,10 @@ interface ToManyRelationshipInterface
      * @param mixed $object
      */
     public function addItem($parentObject, $object): void;
+
+    /**
+     * Clears the collection of mapped object
+     * @param $parentObject
+     */
+    public function clearCollection($parentObject): void;
 }

@@ -21,6 +21,7 @@ namespace Vallarj\JsonApi\Service;
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 use Vallarj\JsonApi\Service\Options\EncoderServiceOptions;
@@ -151,8 +152,10 @@ class EncoderService
         $attributes = [];
         $schemaAttributes = $schema->getAttributes();
         foreach($schemaAttributes as $schemaAttribute) {
-            $key = $schemaAttribute->getKey();
-            $attributes[$key] = $schemaAttribute->getValue($object);
+            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_READ) {
+                $key = $schemaAttribute->getKey();
+                $attributes[$key] = $schemaAttribute->getValue($object);
+            }
         }
 
         // Extract relationships

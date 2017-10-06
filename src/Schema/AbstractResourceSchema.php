@@ -88,7 +88,7 @@ abstract class AbstractResourceSchema
 
     /**
      * Returns the SchemaAttributes of this schema
-     * @return Attribute[]
+     * @return AttributeInterface[]
      */
     final public function getAttributes(): array
     {
@@ -98,7 +98,7 @@ abstract class AbstractResourceSchema
     /**
      * Add a Attribute
      * If an attribute in the array with the same key exists, it will be replaced.
-     * @param $attribute Attribute|array $attribute   If argument is an array, it must be compatible
+     * @param $attribute AttributeInterface|array $attribute   If argument is an array, it must be compatible
      *                                                      with Attribute specifications array.
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException

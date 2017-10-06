@@ -21,14 +21,13 @@ namespace Vallarj\JsonApi\Service;
 
 use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+use Vallarj\JsonApi\Schema\AttributeInterface;
+use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
+use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 use Vallarj\JsonApi\Service\Options\DecoderServiceOptions;
 
 class DecoderService
 {
-    const RETURN_OBJECT         =   0;
-    const RETURN_ID             =   1;
-    const RETURN_TYPE_ID        =   2;
-
     private $decoderOptions;
 
     private $schemaCache;
@@ -44,6 +43,7 @@ class DecoderService
         $this->decoderOptions = $decoderOptions;
 
         $this->schemaCache = [];
+        $this->objectCache = [];
 
         $this->initialize();
     }
@@ -52,11 +52,10 @@ class DecoderService
      * Decodes the document into a new object from a compatible schema.
      * @param string $data
      * @param array $schemaClasses
-     * @param int $returnType
      * @return mixed
      * @throws InvalidFormatException
      */
-    public function decode(string $data, array $schemaClasses, int $returnType = self::RETURN_OBJECT)
+    public function decode(string $data, array $schemaClasses)
     {
         $this->initialize();
 
@@ -87,10 +86,10 @@ class DecoderService
         // Check if data is a single resource or a resource collection
         if(array_keys($data) !== range(0, count($data) - 1)) {
             // Array is sequentially indexed, possibly a resource collection
-            return $this->decodeSingleResource($data, $schemaClasses, $returnType);
+            return $this->decodeSingleResource($data, $schemaClasses);
         } else {
             // Array is possibly a single resource
-            return $this->decodeResourceCollection($data, $schemaClasses, $returnType);
+            return $this->decodeResourceCollection($data, $schemaClasses);
         }
 
     }
@@ -135,11 +134,10 @@ class DecoderService
      * Decode a single resource.
      * @param array $data
      * @param array $schemaClasses
-     * @param int $returnType
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function decodeSingleResource(array $data, array $schemaClasses, int $returnType)
+    private function decodeSingleResource(array $data, array $schemaClasses)
     {
         // Check if 'type' key is set
         if(!isset($data['type'])) {
@@ -161,17 +159,16 @@ class DecoderService
             throw new InvalidFormatException("Invalid 'type' given for this resource");
         }
 
-        return $this->createMappedResource($data, $compatibleSchema, $returnType);
+        return $this->createResourceObject($data, $compatibleSchema);
     }
 
     /**
      * Decode a resource collection.
      * @param array $data
      * @param array $schemaClasses
-     * @param int $returnType
      * @return mixed
      */
-    private function decodeResourceCollection(array $data, array $schemaClasses, int $returnType)
+    private function decodeResourceCollection(array $data, array $schemaClasses)
     {
 
     }
@@ -183,22 +180,6 @@ class DecoderService
         }
 
         return $this->schemaCache[$schemaClass];
-    }
-
-    private function createMappedResource(array $data, AbstractResourceSchema $schema, int $returnType)
-    {
-        switch($returnType) {
-            case self::RETURN_ID:
-                return null;
-                break;
-            case self::RETURN_TYPE_ID:
-                return null;
-                break;
-            case self::RETURN_OBJECT:
-            default:
-                return $this->createResourceObject($data, $schema);
-                break;
-        }
     }
 
     private function createResourceObject(array $data, AbstractResourceSchema $schema)
@@ -226,13 +207,15 @@ class DecoderService
             $schemaAttributes = $schema->getAttributes();
 
             foreach($schemaAttributes as $schemaAttribute) {
-                $key = $schemaAttribute->getKey();
+                if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+                    $key = $schemaAttribute->getKey();
 
-                if(isset($attributes[$key])) {
-                    $value = $attributes[$key];
-                    // TODO: Validate here.
-                    $schemaAttribute->setValue($object, $value);
-                    $this->modifiedProperties[] = $key;
+                    if(isset($attributes[$key])) {
+                        $value = $attributes[$key];
+                        // TODO: Validate here.
+                        $schemaAttribute->setValue($object, $value);
+                        $this->modifiedProperties[] = $key;
+                    }
                 }
             }
         }
@@ -247,68 +230,125 @@ class DecoderService
             }
 
             foreach($schemaRelationships as $schemaRelationship) {
-                $key = $schemaRelationship->getKey();
+                if($schemaRelationship instanceof ToOneRelationshipInterface) {
+                    $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                    $key = $schemaRelationship->getKey();
 
-                if(isset($relationships[$key])) {
-                    $relationship = $relationships[$key];
-                    if(!array_key_exists('data', $relationship)) {
-                        throw new InvalidFormatException("Key 'data' required for relationships");
-                    }
-
-                    $relationshipData = $relationship['data'];
-
-                    if(is_null($relationshipData)) {
-                        // Null relationship data implies has-one relationship
-                        //if($schema->setResourceRelationship)
-                    }
-                }
-            }
-
-            foreach ($relationships as $key => $relationship) {
-                if (!array_key_exists('data', $relationship)) {
-                    throw new InvalidFormatException("Key 'data' required for relationships");
-                }
-
-                $relationshipData = $relationship['data'];
-
-                if(is_null($relationshipData)) {
-                    // Null relationship data implies to-one relationship
-                    if($schema->setResourceRelationship($object, $key, null)) {
-                        $this->modifiedProperties[] = $key;
-                    }
-                } else if(is_array($relationshipData)) {
-                    if(empty($relationshipData)) {
-                        // Empty array relationship data implies to-many relationship
-                        if($schema->setResourceRelationship($object, $key, [])) {
-                            $this->modifiedProperties[] = $key;
-                        }
-                    } else if(isset($relationshipData['id']) && isset($relationshipData['type'])) {
-                        // This is a to-one relationship
-                        if($schema->setResourceRelationship($object, $key, $relationshipData)) {
-                            $this->modifiedProperties[] = $key;
-                        }
-                    } else {
-                        // Possible to-many relationship
-                        $resources = [];
-
-                        foreach($relationshipData as $resource) {
-                            if(!isset($resource['id']) && !isset($resource['type'])) {
-                                throw new InvalidFormatException("Relationship data must contain keys 'id' and 'type'");
-                            }
-
-                            $resources[] = $resource;
+                    if(isset($relationships[$key])) {
+                        if(!is_array($relationships[$key])) {
+                            throw new InvalidFormatException("Invalid format for relationships.");
                         }
 
-                        if($schema->setResourceRelationship($object, $key, $resources)) {
+                        if($this->hydrateToOneRelationship($schemaRelationship, $object, $relationships[$key],
+                            $expectedSchemas)) {
                             $this->modifiedProperties[] = $key;
                         }
                     }
-                } else {
-                    throw new InvalidFormatException("Relationship data must contain keys 'id' and 'type'");
+                } else if($schemaRelationship instanceof ToManyRelationshipInterface) {
+                    $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                    $key = $schemaRelationship->getKey();
+
+                    if(isset($relationships[$key])) {
+                        if(!is_array($relationships[$key])) {
+                            throw new InvalidFormatException("Invalid format for relationships.");
+                        }
+
+                        if($this->hydrateToManyRelationship($schemaRelationship, $object, $relationships[$key],
+                            $expectedSchemas)) {
+                            $this->modifiedProperties[] = $key;
+                        }
+                    }
                 }
             }
         }
 
         return $object;
+    }
+
+    private function hydrateToOneRelationship(
+        ToOneRelationshipInterface $schemaRelationship,
+        $parentObject,
+        array $relationship,
+        array $expectedSchemas
+    ): bool
+    {
+        if(!array_key_exists('data', $relationship)) {
+            throw new InvalidFormatException("Key 'data' required for relationships");
+        }
+
+        $relationshipData = $relationship['data'];
+        if(is_null($relationshipData)) {
+            $schemaRelationship->clearObject($parentObject);
+            return true;
+        }
+
+        if(!is_array($relationshipData) || !isset($relationshipData['type']) || !isset($relationshipData['id'])) {
+            throw new InvalidFormatException("Invalid format for relationships.");
+        }
+
+        foreach($expectedSchemas as $schemaClass) {
+            $schema = $this->getResourceSchema($schemaClass);
+            if($schema->getResourceType() == $relationshipData['type']) {
+                $object = $this->resolveRelationshipObject($schema, $relationshipData['id']);
+                $schemaRelationship->setObject($parentObject, $object);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hydrateToManyRelationship(
+        ToManyRelationshipInterface $schemaRelationship,
+        $parentObject,
+        array $relationship,
+        array $expectedSchemas
+    ): bool
+    {
+        if(!array_key_exists('data', $relationship)) {
+            throw new InvalidFormatException("Key 'data' required for relationships");
+        }
+
+        $relationshipData = $relationship['data'];
+        if(!is_array($relationshipData)) {
+            throw new InvalidFormatException("Invalid format for to-many relationships");
+        }
+
+        if(empty($relationshipData)) {
+            // Clear collection
+            $schemaRelationship->clearCollection($parentObject);
+        }
+
+        $modifiedCount = 0;
+        foreach($relationshipData as $item) {
+            if(!is_array($item) || !isset($item['type']) || !isset($item['id'])) {
+                throw new InvalidFormatException("Invalid format for to-many relationships");
+            }
+
+            foreach($expectedSchemas as $schemaClass) {
+                $schema = $this->getResourceSchema($schemaClass);
+                if($schema->getResourceType() == $item['type']) {
+                    $object = $this->resolveRelationshipObject($schema, $item['id']);
+                    $schemaRelationship->addItem($parentObject, $object);
+                    $modifiedCount++;
+                    break;
+                }
+            }
+        }
+
+        return $modifiedCount > 0;
+    }
+
+    private function resolveRelationshipObject(AbstractResourceSchema $schema, $id)
+    {
+        $mappingClass = $schema->getMappingClass();
+
+        if(!isset($this->objectCache[$mappingClass][$id])) {
+            $object = new $mappingClass;
+            $schema->setResourceId($object, $id);
+            $this->objectCache[$mappingClass][$id] = $object;
+        }
+
+        return $this->objectCache[$mappingClass][$id];
     }
 }

@@ -24,6 +24,9 @@ class Attribute implements AttributeInterface
     /** @var string Specifies the key of the attribute */
     private $key = "";
 
+    /** @var int Access type. Defaults to read and write. */
+    private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
+
     /**
      * @inheritdoc
      */
@@ -56,5 +59,24 @@ class Attribute implements AttributeInterface
     public function setValue($parentObject, $value): void
     {
         $parentObject->{'set' . ucfirst($this->key)}($value);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAccessType(): int
+    {
+        return $this->accessType;
+    }
+
+    /**
+     * Sets the access type of this attribute
+     * @param int $accessFlag
+     * @return $this
+     */
+    public function setAccessType(int $accessFlag)
+    {
+        $this->accessType = $accessFlag;
+        return $this;
     }
 }
