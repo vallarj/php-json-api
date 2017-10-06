@@ -190,10 +190,14 @@ class EncoderService
         $data = [
             'type' => $schema->getResourceType(),
             'id' => $schema->getResourceId($object),
-            'attributes' => $attributes
         ];
 
-        // Included relationships if not empty
+        // Include attributes if not empty
+        if(!empty($attributes)) {
+            $data['attributes'] = $attributes;
+        }
+
+        // Include relationships if not empty
         if(!empty($relationships)) {
             $data['relationships'] = $relationships;
         }
