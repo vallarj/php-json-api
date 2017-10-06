@@ -167,10 +167,40 @@ class DecoderService
      * @param array $data
      * @param array $schemaClasses
      * @return mixed
+     * @throws InvalidFormatException
      */
     private function decodeResourceCollection(array $data, array $schemaClasses)
     {
+        $collection = [];
 
+        foreach($data as $item) {
+            if(!isset($item['type'])) {
+                throw new InvalidFormatException("Resource 'type' is required");
+            }
+
+            $resourceType = $item['type'];
+            $compatibleSchema = null;
+
+            foreach($schemaClasses as $schemaClass) {
+                $schema = $this->getResourceSchema($schemaClass);
+                if($schema->getResourceType() == $resourceType) {
+                    $compatibleSchema = $schema;
+                    break;
+                }
+            }
+
+            if(!$compatibleSchema) {
+                throw new InvalidFormatException("Invalid 'type' given for this resource");
+            }
+
+            $object = $this->createResourceObject($item, $compatibleSchema);
+
+            if($object) {
+                $collection[] = $object;
+            }
+        }
+
+        return $collection;
     }
 
     private function getResourceSchema(string $schemaClass): AbstractResourceSchema
