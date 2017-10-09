@@ -16,7 +16,7 @@
  *
  */
 
-namespace Vallarj\JsonApi\Service;
+namespace Vallarj\JsonApi;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
@@ -25,7 +25,7 @@ use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
-class EncoderService
+class Encoder
 {
     /** @var array Stores already instantiated ResourceSchemas */
     private $schemaCache;
