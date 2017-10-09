@@ -24,12 +24,9 @@ use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
-use Vallarj\JsonApi\Service\Options\EncoderServiceOptions;
 
 class EncoderService
 {
-    private $encoderOptions;
-
     /** @var array Stores already instantiated ResourceSchemas */
     private $schemaCache;
 
@@ -48,10 +45,8 @@ class EncoderService
     /** @var bool Indicates if the last operation was successful */
     private $success;
 
-    function __construct(EncoderServiceOptions $encoderOptions)
+    function __construct()
     {
-        $this->encoderOptions = $encoderOptions;
-
         $this->schemaCache = [];
 
         $this->initializeService();

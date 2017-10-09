@@ -24,12 +24,9 @@ use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
-use Vallarj\JsonApi\Service\Options\DecoderServiceOptions;
 
 class DecoderService
 {
-    private $decoderOptions;
-
     private $schemaCache;
 
     private $objectCache;
@@ -38,10 +35,8 @@ class DecoderService
 
     private $validationErrors;
 
-    function __construct(DecoderServiceOptions $decoderOptions)
+    function __construct()
     {
-        $this->decoderOptions = $decoderOptions;
-
         $this->schemaCache = [];
         $this->objectCache = [];
 
