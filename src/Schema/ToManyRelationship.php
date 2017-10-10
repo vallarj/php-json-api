@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi\Schema;
 
 
-use Lead\Inflector\Inflector;
+use Doctrine\Common\Inflector\Inflector;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
 class ToManyRelationship implements ToManyRelationshipInterface

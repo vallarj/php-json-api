@@ -12,7 +12,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.0",
-        "crysalead/inflector": "^2.0"
+        "doctrine/inflector": "^1.2"
     },
     "autoload": {
         "psr-4": {
