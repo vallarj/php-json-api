@@ -255,7 +255,8 @@ class Decoder
             }
 
             foreach($schemaRelationships as $schemaRelationship) {
-                if($schemaRelationship instanceof ToOneRelationshipInterface) {
+                if($schemaRelationship instanceof ToOneRelationshipInterface &&
+                    ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
                     $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                     $key = $schemaRelationship->getKey();
 
@@ -269,7 +270,8 @@ class Decoder
                             $this->modifiedProperties[] = $key;
                         }
                     }
-                } else if($schemaRelationship instanceof ToManyRelationshipInterface) {
+                } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
+                    ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
                     $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                     $key = $schemaRelationship->getKey();
 
