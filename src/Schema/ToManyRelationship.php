@@ -19,6 +19,7 @@
 namespace Vallarj\JsonApi\Schema;
 
 
+use Doctrine\Common\Inflector\Inflector;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
 class ToManyRelationship implements ToManyRelationshipInterface
@@ -92,6 +93,7 @@ class ToManyRelationship implements ToManyRelationshipInterface
      */
     public function addItem($parentObject, $object): void
     {
+        $singularMapping = Inflector::singularize($this->mappedAs);
         $parentObject->{'add' . ucfirst($singularMapping)}($object);
     }
 
