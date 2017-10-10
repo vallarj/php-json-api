@@ -35,6 +35,10 @@ class Attribute implements AttributeInterface
         if(isset($options['key'])) {
             $this->key = $options['key'];
         }
+
+        if(isset($options['accessType'])) {
+            $this->setAccessType($options['accessType']);
+        }
     }
 
     /**
