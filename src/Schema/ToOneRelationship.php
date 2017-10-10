@@ -32,6 +32,9 @@ class ToOneRelationship implements ToOneRelationshipInterface
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
     private $expectedSchemas = [];
 
+    /** @var int Access type. Defaults to read and write. */
+    private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
+
     /**
      * @inheritdoc
      */
@@ -43,6 +46,10 @@ class ToOneRelationship implements ToOneRelationshipInterface
 
         if(isset($options['mappedAs'])) {
             $this->mappedAs = $options['mappedAs'];
+        }
+
+        if(isset($options['accessType'])) {
+            $this->setAccessType($options['accessType']);
         }
 
         if(isset($options['expects'])) {
@@ -94,5 +101,24 @@ class ToOneRelationship implements ToOneRelationshipInterface
     public function clearObject($parentObject): void
     {
         $parentObject->{'set' . ucfirst($this->mappedAs)}(null);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAccessType(): int
+    {
+        return $this->accessType;
+    }
+
+    /**
+     * Sets the access type of this relationship
+     * @param int $accessFlag
+     * @return $this
+     */
+    public function setAccessType(int $accessFlag)
+    {
+        $this->accessType = $accessFlag;
+        return $this;
     }
 }
