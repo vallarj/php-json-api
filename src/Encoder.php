@@ -157,7 +157,8 @@ class Encoder
         $relationships = [];
         $schemaRelationships = $schema->getRelationships();
         foreach($schemaRelationships as $schemaRelationship) {
-            if($schemaRelationship instanceof ToOneRelationshipInterface) {
+            if($schemaRelationship instanceof ToOneRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_READ)) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $mappedObject = $schemaRelationship->getObject($object);
                 $key = $schemaRelationship->getKey();
@@ -166,7 +167,8 @@ class Encoder
                 if($relationship) {
                     $relationships[$key]['data'] = $relationship;
                 }
-            } else if($schemaRelationship instanceof ToManyRelationshipInterface) {
+            } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_READ)) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $collection = $schemaRelationship->getCollection($object);
                 $key = $schemaRelationship->getKey();
