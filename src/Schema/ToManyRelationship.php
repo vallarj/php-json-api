@@ -106,7 +106,7 @@ class ToManyRelationship implements ToManyRelationshipInterface
 
         // Assumes there is a remove function
         foreach($collection as $item) {
-            $parentObject->{'remove' . ucfirst($this->mappedAs)}();
+            $parentObject->{'remove' . ucfirst($this->mappedAs)}($item);
         }
     }
 
