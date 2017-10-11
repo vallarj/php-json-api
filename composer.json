@@ -1,6 +1,6 @@
 {
-    "name": "vallarj/php-json-api",
-    "description": "JSON API library for PHP 7.0+",
+    "name": "vallarj/zend-json-api",
+    "description": "JSON API library for Zend Framework 3",
     "type": "library",
     "license": "Apache-2.0",
     "keywords": [
@@ -12,11 +12,17 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.0",
-        "doctrine/inflector": "^1.2"
+        "doctrine/inflector": "^1.2",
+        "zendframework/zend-servicemanager": "^3.3"
     },
     "autoload": {
         "psr-4": {
             "Vallarj\\JsonApi\\": "src/"
+        }
+    },
+    "extra": {
+        "zf": {
+            "component": "Vallarj\\JsonApi"
         }
     },
     "scripts": {
