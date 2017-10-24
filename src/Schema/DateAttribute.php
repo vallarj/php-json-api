@@ -86,4 +86,20 @@ class DateAttribute implements AttributeInterface
         $this->accessType = $accessFlag;
         return $this;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValid($value): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getErrorMessages(): array
+    {
+        return [];
+    }
 }
