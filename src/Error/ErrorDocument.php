@@ -85,7 +85,7 @@ class ErrorDocument implements \JsonSerializable
 
         foreach($this->errors as $error) {
             foreach($members as $member) {
-                if(!is_null($value = $error->{'get'. ucfirst($member)})) {
+                if(!is_null($value = $error->{'get'. ucfirst($member)}())) {
                     $document[$member] = $value;
                 }
 
