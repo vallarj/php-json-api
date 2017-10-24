@@ -97,6 +97,8 @@ class ErrorDocument implements \JsonSerializable
                     ];
                 }
             }
+
+            $errors[] = $errorItem;
         }
 
         return [
