@@ -74,7 +74,7 @@ class ErrorDocument implements \JsonSerializable
      */
     public function jsonSerialize()
     {
-        $document = [];
+        $errors = [];
         $members = [
             'id',
             'status',
@@ -84,20 +84,23 @@ class ErrorDocument implements \JsonSerializable
         ];
 
         foreach($this->errors as $error) {
+            $errorItem = [];
             foreach($members as $member) {
                 if(!is_null($value = $error->{'get'. ucfirst($member)}())) {
-                    $document[$member] = $value;
+                    $errorItem[$member] = $value;
                 }
 
                 // Special case for source
                 if(!is_null($source = ($error->getSource()))) {
-                    $document['source'] = [
+                    $errorItem['source'] = [
                         $source->getType() => $source->getReference()
                     ];
                 }
             }
         }
 
-        return $document;
+        return [
+            "errors" => $errors
+        ];
     }
 }
