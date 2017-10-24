@@ -19,6 +19,8 @@
 namespace Vallarj\JsonApi\Schema;
 
 
+use Zend\Validator;
+
 class DateAttribute implements AttributeInterface
 {
     /** @var string Specifies the key of the attribute */
@@ -26,6 +28,9 @@ class DateAttribute implements AttributeInterface
 
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
+
+    /** @var Validator\Date Date validator */
+    private $validator;
 
     /**
      * @inheritdoc
@@ -63,7 +68,6 @@ class DateAttribute implements AttributeInterface
      */
     public function setValue($parentObject, $value): void
     {
-        // TODO: Check if DateTime::ATOM format
         $dateTimeValue = \DateTime::createFromFormat(DATE_ATOM, $value);
         $parentObject->{'set' . ucfirst($this->key)}($dateTimeValue);
     }
@@ -88,11 +92,24 @@ class DateAttribute implements AttributeInterface
     }
 
     /**
+     * Gets the validator of this attribute
+     * @return Validator\Date
+     */
+    private function getValidator(): Validator\Date
+    {
+        if(!$this->validator) {
+            $this->validator = new Validator\Date(["format" => \DateTime::ATOM]);
+        }
+
+        return $this->validator;
+    }
+
+    /**
      * @inheritdoc
      */
     public function isValid($value): bool
     {
-        return true;
+        return $this->getValidator()->isValid($value);
     }
 
     /**
@@ -100,6 +117,6 @@ class DateAttribute implements AttributeInterface
      */
     public function getErrorMessages(): array
     {
-        return [];
+        return $this->getValidator()->getMessages();
     }
 }
