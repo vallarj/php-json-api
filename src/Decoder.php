@@ -19,6 +19,9 @@
 namespace Vallarj\JsonApi;
 
 
+use Vallarj\JsonApi\Error\Error;
+use Vallarj\JsonApi\Error\ErrorDocument;
+use Vallarj\JsonApi\Error\Source\AttributePointer;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
@@ -27,14 +30,21 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Decoder
 {
+    /** @var AbstractResourceSchema[]   Cache of instantiated schemas */
     private $schemaCache;
 
+    /** @var array  Cache of instantiated objects */
     private $objectCache;
 
+    /** @var string[]   Modified property keys from the last decoding operation */
     private $modifiedProperties;
 
-    private $validationErrors;
+    /** @var Error[]  Errors of the last decoding operation */
+    private $errors;
 
+    /**
+     * Decoder constructor.
+     */
     function __construct()
     {
         $this->schemaCache = [];
@@ -56,6 +66,10 @@ class Decoder
 
         // Decode root object
         $root = json_decode($data, true);
+
+        if(json_last_error() !== JSON_ERROR_NONE) {
+            throw new InvalidFormatException("Invalid document format.");
+        }
 
         // Check if data key is set
         if(!array_key_exists('data', $root)) {
@@ -95,16 +109,7 @@ class Decoder
      */
     public function hasValidationErrors(): bool
     {
-        return !empty($this->validationErrors);
-    }
-
-    /**
-     * Return the validation errors of the last operation in JSON API-compliant format
-     * @return string
-     */
-    public function getValidationErrors(): string
-    {
-        return $this->validationErrors;
+        return !empty($this->errors);
     }
 
     /**
@@ -122,7 +127,7 @@ class Decoder
     private function initialize(): void
     {
         $this->modifiedProperties = [];
-        $this->validationErrors = [];
+        $this->errors = [];
     }
 
     /**
@@ -207,6 +212,27 @@ class Decoder
         return $this->schemaCache[$schemaClass];
     }
 
+    public function getErrorDocument(): ?ErrorDocument
+    {
+        if(!empty($this->errors)) {
+            $errorDocument = new ErrorDocument("422");
+            foreach($this->errors as $error) {
+                $errorDocument->addError($error);
+            }
+            return $errorDocument;
+        }
+
+        return null;
+    }
+
+    public function addError(string $attribute, string $detail): void
+    {
+        $error = new Error();
+        $error->setSource(new AttributePointer($attribute));
+        $error->setDetail($detail);
+        $this->errors[] = $error;
+    }
+
     private function createResourceObject(array $data, AbstractResourceSchema $schema)
     {
         $resourceType = $data['type'];
@@ -237,9 +263,15 @@ class Decoder
 
                     if(isset($attributes[$key])) {
                         $value = $attributes[$key];
-                        // TODO: Validate here.
-                        $schemaAttribute->setValue($object, $value);
-                        $this->modifiedProperties[] = $key;
+                        if($schemaAttribute->isValid($value)) {
+                            $schemaAttribute->setValue($object, $value);
+                            $this->modifiedProperties[] = $key;
+                        } else {
+                            $errorMessages = $schemaAttribute->getErrorMessages();
+                            foreach($errorMessages as $errorMessage) {
+                                $this->addError($key, $errorMessage);
+                            }
+                        }
                     }
                 }
             }

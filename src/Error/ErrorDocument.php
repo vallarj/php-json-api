@@ -21,15 +21,15 @@ namespace Vallarj\JsonApi\Error;
 
 class ErrorDocument implements \JsonSerializable
 {
-    /** @var int Equivalent HTTP Status Code */
+    /** @var string Equivalent HTTP Status Code */
     private $statusCode;
 
     /** @var Error[] Collection of errors  */
     private $errors;
 
-    function __construct()
+    function __construct($statusCode = "400")
     {
-        $this->statusCode = 400;
+        $this->statusCode = $statusCode;
         $this->errors = [];
     }
 
@@ -52,10 +52,52 @@ class ErrorDocument implements \JsonSerializable
     }
 
     /**
+     * Gets the equivalent HTTP Status Code
+     * @return string
+     */
+    public function getStatusCode(): string
+    {
+        return $this->statusCode;
+    }
+
+    /**
+     * Sets the equivalent HTTP Status Code
+     * @param string $statusCode
+     */
+    public function setStatusCode(string $statusCode)
+    {
+        $this->statusCode = $statusCode;
+    }
+
+    /**
      * @inheritdoc
      */
     public function jsonSerialize()
     {
-        // TODO: Implement jsonSerialize() method.
+        $document = [];
+        $members = [
+            'id',
+            'status',
+            'code',
+            'title',
+            'detail',
+        ];
+
+        foreach($this->errors as $error) {
+            foreach($members as $member) {
+                if(!is_null($value = $error->{'get'. ucfirst($member)})) {
+                    $document[$member] = $value;
+                }
+
+                // Special case for source
+                if(!is_null($source = ($error->getSource()))) {
+                    $document['source'] = [
+                        $source->getType() => $source->getReference()
+                    ];
+                }
+            }
+        }
+
+        return $document;
     }
 }
