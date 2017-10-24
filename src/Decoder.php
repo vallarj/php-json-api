@@ -263,7 +263,7 @@ class Decoder
                 if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                     $key = $schemaAttribute->getKey();
 
-                    if(isset($attributes[$key])) {
+                    if(array_key_exists($key, $attributes)) {
                         $value = $attributes[$key];
                         if($schemaAttribute->isValid($value)) {
                             $schemaAttribute->setValue($object, $value);

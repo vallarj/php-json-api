@@ -99,6 +99,8 @@ class DateAttribute implements AttributeInterface
     {
         if(!$this->validator) {
             $this->validator = new Validator\Date(["format" => \DateTime::ATOM]);
+            $this->validator->setMessage("Date must follow ISO-8601 format", Validator\Date::INVALID_DATE);
+            $this->validator->setMessage("Date must follow ISO-8601 format", Validator\Date::FALSEFORMAT);
         }
 
         return $this->validator;
