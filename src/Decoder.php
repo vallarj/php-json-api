@@ -265,7 +265,9 @@ class Decoder
 
                     if(array_key_exists($key, $attributes)) {
                         $value = $attributes[$key];
-                        if($schemaAttribute->isValid($value)) {
+                        if($schemaAttribute->isRequired() && is_null($value)) {
+                            $this->addError($key, "Field is required.");
+                        } else if($schemaAttribute->isValid($value)) {
                             $schemaAttribute->setValue($object, $value);
                             $this->modifiedProperties[] = $key;
                         } else {
@@ -274,6 +276,8 @@ class Decoder
                                 $this->addError($key, $errorMessage);
                             }
                         }
+                    } else if($schemaAttribute->isRequired()) {
+                        $this->addError($key, "Field is required.");
                     }
                 }
             }

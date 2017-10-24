@@ -29,6 +29,9 @@ class DateAttribute implements AttributeInterface
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
 
+    /** @var bool Specifies if attribute is required. */
+    private $isRequired = false;
+
     /** @var Validator\Date Date validator */
     private $validator;
 
@@ -39,6 +42,10 @@ class DateAttribute implements AttributeInterface
     {
         if(isset($options['key'])) {
             $this->key = $options['key'];
+        }
+
+        if(isset($options['required'])) {
+            $this->setRequired($options['required']);
         }
     }
 
@@ -111,7 +118,28 @@ class DateAttribute implements AttributeInterface
      */
     public function isValid($value): bool
     {
+        // Workaround for null $value
+        if(is_null($value)) {
+            $value = "";
+        }
         return $this->getValidator()->isValid($value);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequired(): bool
+    {
+        return $this->isRequired;
+    }
+
+    /**
+     * Sets the attribute required flag
+     * @param bool $required
+     */
+    public function setRequired(bool $required)
+    {
+        $this->isRequired = $required;
     }
 
     /**

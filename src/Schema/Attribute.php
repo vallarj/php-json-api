@@ -32,6 +32,9 @@ class Attribute implements AttributeInterface
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
 
+    /** @var bool Specifies if attribute is required. */
+    private $isRequired = false;
+
     private $validatorChain;
 
     /**
@@ -53,6 +56,10 @@ class Attribute implements AttributeInterface
 
         if(isset($options['accessType'])) {
             $this->setAccessType($options['accessType']);
+        }
+
+        if(isset($options['required'])) {
+            $this->setRequired($options['required']);
         }
 
         if(isset($options['validators'])) {
@@ -113,6 +120,23 @@ class Attribute implements AttributeInterface
     public function isValid($value): bool
     {
         return $this->getValidatorChain()->isValid($value);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequired(): bool
+    {
+        return $this->isRequired;
+    }
+
+    /**
+     * Sets the attribute required flag
+     * @param bool $required
+     */
+    public function setRequired(bool $required)
+    {
+        $this->isRequired = $required;
     }
 
     /**
