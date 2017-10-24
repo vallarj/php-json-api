@@ -95,12 +95,14 @@ class Decoder
         // Check if data is a single resource or a resource collection
         if(array_keys($data) !== range(0, count($data) - 1)) {
             // Array is sequentially indexed, possibly a resource collection
-            return $this->decodeSingleResource($data, $schemaClasses);
+            $resource = $this->decodeSingleResource($data, $schemaClasses);
         } else {
             // Array is possibly a single resource
-            return $this->decodeResourceCollection($data, $schemaClasses);
+            $resource = $this->decodeResourceCollection($data, $schemaClasses);
         }
 
+        // Return null if errors occurred
+        return $this->hasValidationErrors() ? null : $resource;
     }
 
     /**
