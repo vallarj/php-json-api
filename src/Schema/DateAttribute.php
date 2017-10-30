@@ -75,8 +75,10 @@ class DateAttribute implements AttributeInterface
      */
     public function setValue($parentObject, $value): void
     {
-        $dateTimeValue = \DateTime::createFromFormat(DATE_ATOM, $value);
-        $parentObject->{'set' . ucfirst($this->key)}($dateTimeValue);
+        if(!is_null($value)) {
+            $value = \DateTime::createFromFormat(DATE_ATOM, $value);
+        }
+        $parentObject->{'set' . ucfirst($this->key)}($value);
     }
 
     /**
