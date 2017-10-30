@@ -57,10 +57,11 @@ class Decoder
      * Decodes the document into a new object from a compatible schema.
      * @param string $data
      * @param array $schemaClasses
+     * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    public function decode(string $data, array $schemaClasses)
+    public function decode(string $data, array $schemaClasses, bool $ignoreMissingFields = false)
     {
         $this->initialize();
 
@@ -95,10 +96,10 @@ class Decoder
         // Check if data is a single resource or a resource collection
         if(array_keys($data) !== range(0, count($data) - 1)) {
             // Array is sequentially indexed, possibly a resource collection
-            $resource = $this->decodeSingleResource($data, $schemaClasses);
+            $resource = $this->decodeSingleResource($data, $schemaClasses, $ignoreMissingFields);
         } else {
             // Array is possibly a single resource
-            $resource = $this->decodeResourceCollection($data, $schemaClasses);
+            $resource = $this->decodeResourceCollection($data, $schemaClasses, $ignoreMissingFields);
         }
 
         // Return null if errors occurred
@@ -136,10 +137,11 @@ class Decoder
      * Decode a single resource.
      * @param array $data
      * @param array $schemaClasses
+     * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function decodeSingleResource(array $data, array $schemaClasses)
+    private function decodeSingleResource(array $data, array $schemaClasses, bool $ignoreMissingFields)
     {
         // Check if 'type' key is set
         if(!isset($data['type'])) {
@@ -161,17 +163,18 @@ class Decoder
             throw new InvalidFormatException("Invalid 'type' given for this resource");
         }
 
-        return $this->createResourceObject($data, $compatibleSchema);
+        return $this->createResourceObject($data, $compatibleSchema, $ignoreMissingFields);
     }
 
     /**
      * Decode a resource collection.
      * @param array $data
      * @param array $schemaClasses
+     * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function decodeResourceCollection(array $data, array $schemaClasses)
+    private function decodeResourceCollection(array $data, array $schemaClasses, bool $ignoreMissingFields)
     {
         $collection = [];
 
@@ -195,7 +198,7 @@ class Decoder
                 throw new InvalidFormatException("Invalid 'type' given for this resource");
             }
 
-            $object = $this->createResourceObject($item, $compatibleSchema);
+            $object = $this->createResourceObject($item, $compatibleSchema, $ignoreMissingFields);
 
             if($object) {
                 $collection[] = $object;
@@ -235,7 +238,7 @@ class Decoder
         $this->errors[] = $error;
     }
 
-    private function createResourceObject(array $data, AbstractResourceSchema $schema)
+    private function createResourceObject(array $data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
     {
         $resourceType = $data['type'];
         $resourceId = $data['id'] ?? null;
@@ -276,7 +279,7 @@ class Decoder
                                 $this->addError($key, $errorMessage);
                             }
                         }
-                    } else if($schemaAttribute->isRequired()) {
+                    } else if(!$ignoreMissingFields && $schemaAttribute->isRequired()) {
                         $this->addError($key, "Field is required.");
                     }
                 }
