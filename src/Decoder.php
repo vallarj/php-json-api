@@ -268,15 +268,23 @@ class Decoder
 
                     if(array_key_exists($key, $attributes)) {
                         $value = $attributes[$key];
-                        if($schemaAttribute->isRequired() && is_null($value)) {
-                            $this->addError($key, "Field is required.");
-                        } else if($schemaAttribute->isValid($value)) {
-                            $schemaAttribute->setValue($object, $value);
-                            $this->modifiedProperties[] = $key;
+
+                        if(is_null($value)) {
+                            if($schemaAttribute->isRequired()) {
+                                $this->addError($key, "Field is required.");
+                            } else {
+                                $schemaAttribute->setValue($object, $value);
+                                $this->modifiedProperties[] = $key;
+                            }
                         } else {
-                            $errorMessages = $schemaAttribute->getErrorMessages();
-                            foreach($errorMessages as $errorMessage) {
-                                $this->addError($key, $errorMessage);
+                            if($schemaAttribute->isValid($value)) {
+                                $schemaAttribute->setValue($object, $value);
+                                $this->modifiedProperties[] = $key;
+                            } else {
+                                $errorMessages = $schemaAttribute->getErrorMessages();
+                                foreach($errorMessages as $errorMessage) {
+                                    $this->addError($key, $errorMessage);
+                                }
                             }
                         }
                     } else if(!$ignoreMissingFields && $schemaAttribute->isRequired()) {
