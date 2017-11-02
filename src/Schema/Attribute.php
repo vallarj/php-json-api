@@ -136,9 +136,9 @@ class Attribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value): bool
+    public function isValid($value, $context): bool
     {
-        return $this->getValidatorChain()->isValid($value);
+        return $this->getValidatorChain()->isValid($value, $context);
     }
 
     /**

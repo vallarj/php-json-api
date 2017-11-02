@@ -36,6 +36,9 @@ class Decoder
     /** @var array  Cache of instantiated objects */
     private $objectCache;
 
+    /** @var array  Context of the current operation */
+    private $context;
+
     /** @var string[]   Modified property keys from the last decoding operation */
     private $modifiedProperties;
 
@@ -131,6 +134,10 @@ class Decoder
     {
         $this->modifiedProperties = [];
         $this->errors = [];
+        $this->context = [
+            'attributes' => [],
+            'relationships' => [],
+        ];
     }
 
     /**
@@ -262,6 +269,7 @@ class Decoder
             $attributes = $data['attributes'];
             $schemaAttributes = $schema->getAttributes();
 
+            // First pass, perform attribute pre-processing then add to current context array
             foreach($schemaAttributes as $schemaAttribute) {
                 if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                     $key = $schemaAttribute->getKey();
@@ -271,6 +279,24 @@ class Decoder
                         // Perform attribute pre-processing
                         $value = $schemaAttribute->filterValue($value);
 
+                        // Add to context. This is necessary so that all values will be available if
+                        // dependent validation is performed
+                        $this->context['attributes'][$key] = $value;
+                        $this->modifiedProperties[] = $key;
+                    }
+                }
+            }
+
+            // Second pass, perform validation and hydrate object using context values
+            foreach($schemaAttributes as $schemaAttribute) {
+                if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+                    $key = $schemaAttribute->getKey();
+
+                    $context = $this->context['attributes'];
+
+                    if(array_key_exists($key, $context)) {
+                        $value = $context[$key];
+
                         if(is_null($value)) {
                             if($schemaAttribute->isRequired()) {
                                 $this->addError($key, "Field is required.");
@@ -279,7 +305,7 @@ class Decoder
                                 $this->modifiedProperties[] = $key;
                             }
                         } else {
-                            if($schemaAttribute->isValid($value)) {
+                            if($schemaAttribute->isValid($value, $context)) {
                                 $schemaAttribute->setValue($object, $value);
                                 $this->modifiedProperties[] = $key;
                             } else {

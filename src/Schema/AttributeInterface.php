@@ -66,9 +66,10 @@ interface AttributeInterface
     /**
      * Returns true if value is valid
      * @param mixed $value
+     * @param array $context    The context this attribute belongs to
      * @return bool
      */
-    public function isValid($value): bool;
+    public function isValid($value, $context): bool;
 
     /**
      * Returns true if attribute is required

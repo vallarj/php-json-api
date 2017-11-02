@@ -127,7 +127,7 @@ class DateAttribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value): bool
+    public function isValid($value, $context): bool
     {
         // Workaround for null $value
         if(is_null($value)) {
