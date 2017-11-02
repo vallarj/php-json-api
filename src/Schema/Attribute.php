@@ -117,6 +117,25 @@ class Attribute implements AttributeInterface
     /**
      * @inheritdoc
      */
+    public function filterValue($value)
+    {
+        // If value is string
+        if(is_string($value)) {
+            // Trim whitespaces
+            $value = trim($value);
+
+            // If empty string, set value to null.
+            if(!$value) {
+                $value = null;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function isValid($value): bool
     {
         return $this->getValidatorChain()->isValid($value);

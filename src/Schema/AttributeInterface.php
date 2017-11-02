@@ -57,6 +57,13 @@ interface AttributeInterface
     public function getAccessType(): int;
 
     /**
+     * Returns a pre-processed value of the input value
+     * @param $value
+     * @return mixed
+     */
+    public function filterValue($value);
+
+    /**
      * Returns true if value is valid
      * @param mixed $value
      * @return bool

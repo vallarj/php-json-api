@@ -118,6 +118,15 @@ class DateAttribute implements AttributeInterface
     /**
      * @inheritdoc
      */
+    public function filterValue($value)
+    {
+        // Do not perform any pre-processing
+        return $value;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function isValid($value): bool
     {
         // Workaround for null $value

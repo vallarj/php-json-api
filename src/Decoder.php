@@ -268,6 +268,8 @@ class Decoder
 
                     if(array_key_exists($key, $attributes)) {
                         $value = $attributes[$key];
+                        // Perform attribute pre-processing
+                        $value = $schemaAttribute->filterValue($value);
 
                         if(is_null($value)) {
                             if($schemaAttribute->isRequired()) {
