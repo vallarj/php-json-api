@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi\Exception;
 
 
-class InvalidConfigurationException extends \Exception
+class InvalidValidatorException extends \Exception
 {
 
 }

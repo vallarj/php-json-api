@@ -76,4 +76,10 @@ interface ToOneRelationshipInterface
      * @return ValidationResultInterface
      */
     public function isValid($id, $type, $context): ValidationResultInterface;
+
+    /**
+     * Returns true if attribute is required
+     * @return bool
+     */
+    public function isRequired(): bool;
 }

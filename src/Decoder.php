@@ -313,7 +313,6 @@ class Decoder
             foreach($schemaRelationships as $schemaRelationship) {
                 if($schemaRelationship instanceof ToOneRelationshipInterface &&
                     ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
-                    $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                     $key = $schemaRelationship->getKey();
 
                     if(isset($relationships[$key])) {
@@ -321,14 +320,13 @@ class Decoder
                             throw new InvalidFormatException("Invalid format for relationships.");
                         }
 
-                        if($this->hydrateToOneRelationship($schemaRelationship, $object, $relationships[$key],
-                            $expectedSchemas)) {
-                            $this->context['modified'][] = $key;
-                        }
+                        $this->setToOneRelationshipContext($key, $relationships[$key]);
+                        $this->context['modified'][] = $key;
+                    } else {
+                        $this->context['relationships'][$key] = null;
                     }
                 } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
                     ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
-                    $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                     $key = $schemaRelationship->getKey();
 
                     if(isset($relationships[$key])) {
@@ -336,22 +334,23 @@ class Decoder
                             throw new InvalidFormatException("Invalid format for relationships.");
                         }
 
-                        if($this->hydrateToManyRelationship($schemaRelationship, $object, $relationships[$key],
-                            $expectedSchemas)) {
-                            $this->context['modified'][] = $key;
-                        }
+                        $this->setToManyRelationshipContext($key, $relationships[$key]);
+                        $this->context['modified'][] = $key;
+                    } else {
+                        $this->context['relationships'][$key] = [];
                     }
                 }
             }
         }
 
         // SECOND PASS: Perform validation and hydrate object using context values
+        // Attributes
         foreach($schemaAttributes as $schemaAttribute) {
             if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                 $key = $schemaAttribute->getKey();
 
                 $attributeContext = $this->context['attributes'];
-                $value = $attributeContext[$key] ?? null;
+                $value = $attributeContext[$key];
 
                 // Null may mean request sent null or request missing attribute
                 if(is_null($value)) {
@@ -380,8 +379,112 @@ class Decoder
             }
         }
 
+        // Relationships
+        foreach($schemaRelationships as $schemaRelationship) {
+            if($schemaRelationship instanceof ToOneRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
+                $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                $key = $schemaRelationship->getKey();
+
+                $relationship = $this->context['relationships'][$key];
+
+                // Null may mean request sent null or request missing relationship
+                if(is_null($relationship)) {
+                    // If missing relationships are allowed and relationship is missing, continue
+                    if($ignoreMissingFields && !in_array($key, $this->context['modified'])) {
+                        continue;
+                    }
+
+                    // If relationship is required
+                    if($schemaRelationship->isRequired()) {
+                        $this->addError($key, "Field is required.");
+                    } else {
+                        $this->hydrateToOneRelationship($schemaRelationship, $object, null, $expectedSchemas);
+                    }
+                } else {
+                    $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
+                    if($validationResult->isValid()) {
+                        $this->hydrateToOneRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
+                    } else {
+                        $errorMessages = $validationResult->getMessages();
+                        foreach($errorMessages as $errorMessage) {
+                            $this->addError($key, $errorMessage);
+                        }
+                    }
+                }
+
+            } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
+                $expectedSchemas = $schemaRelationship->getExpectedSchemas();
+                $key = $schemaRelationship->getKey();
+
+                $relationship = $this->context['relationships'][$key];
+
+                // Empty may mean request sent empty collection or request missing relationship
+                if(empty($relationship)) {
+                    // If missing relationships are allowed and relationship is missing, continue
+                    if($ignoreMissingFields && !in_array($key, $this->context['modified'])) {
+                        continue;
+                    }
+
+                    // If relationship is required
+                    if($schemaRelationship->isRequired()) {
+                        $this->addError($key, "Field is required.");
+                    } else {
+                        $this->hydrateToManyRelationship($schemaRelationship, $object, [], $expectedSchemas);
+                    }
+                } else {
+                    $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
+                    if($validationResult->isValid()) {
+                        $this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
+                    } else {
+                        $errorMessages = $validationResult->getMessages();
+                        foreach($errorMessages as $errorMessage) {
+                            $this->addError($key, $errorMessage);
+                        }
+                    }
+                }
+            }
+        }
 
         return $object;
+    }
+
+    private function setToOneRelationshipContext($key, array $relationship): void
+    {
+        if(!array_key_exists('data', $relationship)) {
+            throw new InvalidFormatException("Key 'data' required for relationships");
+        }
+
+        $relationshipData = $relationship['data'];
+        if(!is_null($relationshipData)) {
+            if(!is_array($relationshipData) || !isset($relationshipData['type']) || !isset($relationshipData['id'])) {
+                throw new InvalidFormatException("Invalid format for relationships.");
+            }
+        }
+
+        $this->context['relationships'][$key] = $relationshipData;
+    }
+
+    private function setToManyRelationshipContext($key, array $relationship): void
+    {
+        if(!array_key_exists('data', $relationship)) {
+            throw new InvalidFormatException("Key 'data' required for relationships");
+        }
+
+        $relationshipData = $relationship['data'];
+        if(!is_array($relationshipData)) {
+            throw new InvalidFormatException("Invalid format for to-many relationships");
+        }
+
+        foreach($relationshipData as $item) {
+            if (!is_array($item) || !isset($item['type']) || !isset($item['id'])) {
+                throw new InvalidFormatException("Invalid format for to-many relationships");
+            }
+        }
+
+        // Set context
+        $this->context['relationships'][$key] = $relationshipData;
     }
 
     private function hydrateToOneRelationship(
@@ -391,24 +494,15 @@ class Decoder
         array $expectedSchemas
     ): bool
     {
-        if(!array_key_exists('data', $relationship)) {
-            throw new InvalidFormatException("Key 'data' required for relationships");
-        }
-
-        $relationshipData = $relationship['data'];
-        if(is_null($relationshipData)) {
+        if(is_null($relationship)) {
             $schemaRelationship->clearObject($parentObject);
             return true;
         }
 
-        if(!is_array($relationshipData) || !isset($relationshipData['type']) || !isset($relationshipData['id'])) {
-            throw new InvalidFormatException("Invalid format for relationships.");
-        }
-
         foreach($expectedSchemas as $schemaClass) {
             $schema = $this->getResourceSchema($schemaClass);
-            if($schema->getResourceType() == $relationshipData['type']) {
-                $object = $this->resolveRelationshipObject($schema, $relationshipData['id']);
+            if($schema->getResourceType() == $relationship['type']) {
+                $object = $this->resolveRelationshipObject($schema, $relationship['id']);
                 $schemaRelationship->setObject($parentObject, $object);
                 return true;
             }
@@ -424,26 +518,13 @@ class Decoder
         array $expectedSchemas
     ): bool
     {
-        if(!array_key_exists('data', $relationship)) {
-            throw new InvalidFormatException("Key 'data' required for relationships");
-        }
-
-        $relationshipData = $relationship['data'];
-        if(!is_array($relationshipData)) {
-            throw new InvalidFormatException("Invalid format for to-many relationships");
-        }
-
-        if(empty($relationshipData)) {
+        if(empty($relationship)) {
             // Clear collection
             $schemaRelationship->clearCollection($parentObject);
         }
 
         $modifiedCount = 0;
-        foreach($relationshipData as $item) {
-            if(!is_array($item) || !isset($item['type']) || !isset($item['id'])) {
-                throw new InvalidFormatException("Invalid format for to-many relationships");
-            }
-
+        foreach($relationship as $item) {
             foreach($expectedSchemas as $schemaClass) {
                 $schema = $this->getResourceSchema($schemaClass);
                 if($schema->getResourceType() == $item['type']) {

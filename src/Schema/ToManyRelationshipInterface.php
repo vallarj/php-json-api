@@ -75,4 +75,10 @@ interface ToManyRelationshipInterface
      * @return ValidationResultInterface
      */
     public function isValid(array $relationships, $context): ValidationResultInterface;
+
+    /**
+     * Returns true if attribute is required
+     * @return bool
+     */
+    public function isRequired(): bool;
 }
