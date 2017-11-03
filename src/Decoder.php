@@ -22,6 +22,7 @@ namespace Vallarj\JsonApi;
 use Vallarj\JsonApi\Error\Error;
 use Vallarj\JsonApi\Error\ErrorDocument;
 use Vallarj\JsonApi\Error\Source\AttributePointer;
+use Vallarj\JsonApi\Error\Source\RelationshipPointer;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
@@ -242,10 +243,18 @@ class Decoder
         return null;
     }
 
-    public function addError(string $attribute, string $detail): void
+    public function addAttributeError(string $attribute, string $detail): void
     {
         $error = new Error();
         $error->setSource(new AttributePointer($attribute));
+        $error->setDetail($detail);
+        $this->errors[] = $error;
+    }
+
+    public function addRelationshipError(string $relationship, string $detail): void
+    {
+        $error = new Error();
+        $error->setSource(new RelationshipPointer($relationship));
         $error->setDetail($detail);
         $this->errors[] = $error;
     }
@@ -361,7 +370,7 @@ class Decoder
 
                     // If attribute is required
                     if($schemaAttribute->isRequired()) {
-                        $this->addError($key, "Field is required.");
+                        $this->addAttributeError($key, "Field is required.");
                     } else {
                         $schemaAttribute->setValue($object, $value);
                     }
@@ -372,7 +381,7 @@ class Decoder
                     } else {
                         $errorMessages = $validationResult->getMessages();
                         foreach($errorMessages as $errorMessage) {
-                            $this->addError($key, $errorMessage);
+                            $this->addAttributeError($key, $errorMessage);
                         }
                     }
                 }
@@ -397,7 +406,7 @@ class Decoder
 
                     // If relationship is required
                     if($schemaRelationship->isRequired()) {
-                        $this->addError($key, "Field is required.");
+                        $this->addRelationshipError($key, "Field is required.");
                     } else {
                         $this->hydrateToOneRelationship($schemaRelationship, $object, null, $expectedSchemas);
                     }
@@ -408,7 +417,7 @@ class Decoder
                     } else {
                         $errorMessages = $validationResult->getMessages();
                         foreach($errorMessages as $errorMessage) {
-                            $this->addError($key, $errorMessage);
+                            $this->addRelationshipError($key, $errorMessage);
                         }
                     }
                 }
@@ -429,7 +438,7 @@ class Decoder
 
                     // If relationship is required
                     if($schemaRelationship->isRequired()) {
-                        $this->addError($key, "Field is required.");
+                        $this->addRelationshipError($key, "Field is required.");
                     } else {
                         $this->hydrateToManyRelationship($schemaRelationship, $object, [], $expectedSchemas);
                     }
@@ -440,7 +449,7 @@ class Decoder
                     } else {
                         $errorMessages = $validationResult->getMessages();
                         foreach($errorMessages as $errorMessage) {
-                            $this->addError($key, $errorMessage);
+                            $this->addRelationshipError($key, $errorMessage);
                         }
                     }
                 }
