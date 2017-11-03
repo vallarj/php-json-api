@@ -292,10 +292,10 @@ class Decoder
                 if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                     $key = $schemaAttribute->getKey();
 
-                    $context = $this->context['attributes'];
+                    $attributeContext = $this->context['attributes'];
 
-                    if(array_key_exists($key, $context)) {
-                        $value = $context[$key];
+                    if(array_key_exists($key, $attributeContext)) {
+                        $value = $attributeContext[$key];
 
                         if(is_null($value)) {
                             if($schemaAttribute->isRequired()) {
@@ -305,7 +305,7 @@ class Decoder
                                 $this->modifiedProperties[] = $key;
                             }
                         } else {
-                            if($schemaAttribute->isValid($value, $context)) {
+                            if($schemaAttribute->isValid($value, $this->context)) {
                                 $schemaAttribute->setValue($object, $value);
                                 $this->modifiedProperties[] = $key;
                             } else {
