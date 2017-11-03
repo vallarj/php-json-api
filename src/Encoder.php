@@ -186,7 +186,7 @@ class Encoder
         // Build the return data
         $data = [
             'type' => $schema->getResourceType(),
-            'id' => $schema->getResourceId($object),
+            'id' => (string)$schema->getResourceId($object),
         ];
 
         // Include attributes if not empty
@@ -239,7 +239,7 @@ class Encoder
 
         return [
             'type' => $resourceType,
-            'id' => $resourceId
+            'id' => (string)$resourceId
         ];
     }
 }
