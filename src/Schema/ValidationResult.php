@@ -21,12 +21,12 @@ namespace Vallarj\JsonApi\Schema;
 
 class ValidationResult implements ValidationResultInterface
 {
-    private $isValid;
+    private $valid;
     private $messages;
 
     function __construct(bool $isValid)
     {
-        $this->isValid = $isValid;
+        $this->valid = $isValid;
         $this->messages = [];
     }
 
@@ -35,7 +35,7 @@ class ValidationResult implements ValidationResultInterface
      */
     public function isValid(): bool
     {
-        return $this->isValid();
+        return $this->valid;
     }
 
     /**
