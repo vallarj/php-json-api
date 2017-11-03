@@ -121,4 +121,12 @@ class ToOneRelationship implements ToOneRelationshipInterface
         $this->accessType = $accessFlag;
         return $this;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValid($value, $type): bool
+    {
+        return true;
+    }
 }

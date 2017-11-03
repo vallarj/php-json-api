@@ -36,11 +36,16 @@ class Decoder
     /** @var array  Cache of instantiated objects */
     private $objectCache;
 
-    /** @var array  Context of the current operation */
+    /**
+     * Context of the current operation
+     * Keys:
+     *  - id: Included only if decodePost or decodePatch operation
+     *  - attributes: Attribute values indexed by attribute key
+     *  - relationships: Array of relationship type and ids
+     *  - modified: Array of modified property keys
+     * @var array
+     */
     private $context;
-
-    /** @var string[]   Modified property keys from the last decoding operation */
-    private $modifiedProperties;
 
     /** @var Error[]  Errors of the last decoding operation */
     private $errors;
@@ -124,7 +129,7 @@ class Decoder
      */
     public function getModifiedProperties(): array
     {
-        return $this->modifiedProperties;
+        return $this->context['modified'];
     }
 
     /**
@@ -132,11 +137,11 @@ class Decoder
      */
     private function initialize(): void
     {
-        $this->modifiedProperties = [];
         $this->errors = [];
         $this->context = [
             'attributes' => [],
             'relationships' => [],
+            'modified' => [],
         ];
     }
 
@@ -282,7 +287,9 @@ class Decoder
                         // Add to context. This is necessary so that all values will be available if
                         // dependent validation is performed
                         $this->context['attributes'][$key] = $value;
-                        $this->modifiedProperties[] = $key;
+                        $this->context['modified'][] = $key;
+                    } else {
+                        $this->context['attributes'][$key] = null;
                     }
                 }
             }
@@ -293,30 +300,30 @@ class Decoder
                     $key = $schemaAttribute->getKey();
 
                     $attributeContext = $this->context['attributes'];
+                    $value = $attributeContext[$key];
 
-                    if(array_key_exists($key, $attributeContext)) {
-                        $value = $attributeContext[$key];
+                    // Null may mean request sent null or request missing attribute
+                    if(is_null($value)) {
+                        // If missing attributes are allowed and attribute is missing, continue
+                        if($ignoreMissingFields && !in_array($key, $this->context['modified'])) {
+                            continue;
+                        }
 
-                        if(is_null($value)) {
-                            if($schemaAttribute->isRequired()) {
-                                $this->addError($key, "Field is required.");
-                            } else {
-                                $schemaAttribute->setValue($object, $value);
-                                $this->modifiedProperties[] = $key;
-                            }
+                        // If attribute is required
+                        if($schemaAttribute->isRequired()) {
+                            $this->addError($key, "Field is required.");
                         } else {
-                            if($schemaAttribute->isValid($value, $this->context)) {
-                                $schemaAttribute->setValue($object, $value);
-                                $this->modifiedProperties[] = $key;
-                            } else {
-                                $errorMessages = $schemaAttribute->getErrorMessages();
-                                foreach($errorMessages as $errorMessage) {
-                                    $this->addError($key, $errorMessage);
-                                }
+                            $schemaAttribute->setValue($object, $value);
+                        }
+                    } else {
+                        if($schemaAttribute->isValid($value, $this->context)) {
+                            $schemaAttribute->setValue($object, $value);
+                        } else {
+                            $errorMessages = $schemaAttribute->getErrorMessages();
+                            foreach($errorMessages as $errorMessage) {
+                                $this->addError($key, $errorMessage);
                             }
                         }
-                    } else if(!$ignoreMissingFields && $schemaAttribute->isRequired()) {
-                        $this->addError($key, "Field is required.");
                     }
                 }
             }
@@ -344,7 +351,7 @@ class Decoder
 
                         if($this->hydrateToOneRelationship($schemaRelationship, $object, $relationships[$key],
                             $expectedSchemas)) {
-                            $this->modifiedProperties[] = $key;
+                            $this->context['modified'][] = $key;
                         }
                     }
                 } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
@@ -359,7 +366,7 @@ class Decoder
 
                         if($this->hydrateToManyRelationship($schemaRelationship, $object, $relationships[$key],
                             $expectedSchemas)) {
-                            $this->modifiedProperties[] = $key;
+                            $this->context['modified'][] = $key;
                         }
                     }
                 }
