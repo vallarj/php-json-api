@@ -136,9 +136,17 @@ class Attribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value, $context): bool
+    public function isValid($value, $context): ValidationResultInterface
     {
-        return $this->getValidatorChain()->isValid($value, $context);
+        $validatorChain = $this->getValidatorChain();
+        $validationResult = new ValidationResult($validatorChain->isValid($value, $context));
+        $messages = $validatorChain->getMessages();
+
+        foreach($messages as $message) {
+            $validationResult->addMessage($message);
+        }
+
+        return $validationResult;
     }
 
     /**
@@ -156,14 +164,6 @@ class Attribute implements AttributeInterface
     public function setRequired(bool $required)
     {
         $this->isRequired = $required;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getErrorMessages(): array
-    {
-        return $this->getValidatorChain()->getMessages();
     }
 
     /**

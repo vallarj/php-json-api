@@ -132,8 +132,8 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value, $type): bool
+    public function isValid(array $relationships, $context): ValidationResultInterface
     {
-        return true;
+        // TODO: Implement isValid() method.
     }
 }

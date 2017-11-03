@@ -125,8 +125,8 @@ class ToOneRelationship implements ToOneRelationshipInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value, $type): bool
+    public function isValid($id, $type, $context): ValidationResultInterface
     {
-        return true;
+        // TODO: Implement isValid() method.
     }
 }

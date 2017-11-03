@@ -269,10 +269,17 @@ class Decoder
         // Set the resource ID
         $schema->setResourceId($object, $resourceId);
 
+        // Schema attributes
+        $schemaAttributes = $schema->getAttributes();
+
+        // Schema relationships
+        $schemaRelationships = $schema->getRelationships();
+
+        // FIRST PASS: Set attributes and relationships to context to prepare for validation
+        // This is needed for interdependent validation
         // Set attributes
         if (isset($data['attributes'])) {
             $attributes = $data['attributes'];
-            $schemaAttributes = $schema->getAttributes();
 
             // First pass, perform attribute pre-processing then add to current context array
             foreach($schemaAttributes as $schemaAttribute) {
@@ -293,46 +300,11 @@ class Decoder
                     }
                 }
             }
-
-            // Second pass, perform validation and hydrate object using context values
-            foreach($schemaAttributes as $schemaAttribute) {
-                if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
-                    $key = $schemaAttribute->getKey();
-
-                    $attributeContext = $this->context['attributes'];
-                    $value = $attributeContext[$key];
-
-                    // Null may mean request sent null or request missing attribute
-                    if(is_null($value)) {
-                        // If missing attributes are allowed and attribute is missing, continue
-                        if($ignoreMissingFields && !in_array($key, $this->context['modified'])) {
-                            continue;
-                        }
-
-                        // If attribute is required
-                        if($schemaAttribute->isRequired()) {
-                            $this->addError($key, "Field is required.");
-                        } else {
-                            $schemaAttribute->setValue($object, $value);
-                        }
-                    } else {
-                        if($schemaAttribute->isValid($value, $this->context)) {
-                            $schemaAttribute->setValue($object, $value);
-                        } else {
-                            $errorMessages = $schemaAttribute->getErrorMessages();
-                            foreach($errorMessages as $errorMessage) {
-                                $this->addError($key, $errorMessage);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         // Set relationships
         if (isset($data['relationships'])) {
             $relationships = $data['relationships'];
-            $schemaRelationships = $schema->getRelationships();
 
             if(!is_array($relationships)) {
                 throw new InvalidFormatException("Invalid format for relationships.");
@@ -372,6 +344,42 @@ class Decoder
                 }
             }
         }
+
+        // SECOND PASS: Perform validation and hydrate object using context values
+        foreach($schemaAttributes as $schemaAttribute) {
+            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+                $key = $schemaAttribute->getKey();
+
+                $attributeContext = $this->context['attributes'];
+                $value = $attributeContext[$key] ?? null;
+
+                // Null may mean request sent null or request missing attribute
+                if(is_null($value)) {
+                    // If missing attributes are allowed and attribute is missing, continue
+                    if($ignoreMissingFields && !in_array($key, $this->context['modified'])) {
+                        continue;
+                    }
+
+                    // If attribute is required
+                    if($schemaAttribute->isRequired()) {
+                        $this->addError($key, "Field is required.");
+                    } else {
+                        $schemaAttribute->setValue($object, $value);
+                    }
+                } else {
+                    $validationResult = $schemaAttribute->isValid($value, $this->context);
+                    if($validationResult->isValid()) {
+                        $schemaAttribute->setValue($object, $value);
+                    } else {
+                        $errorMessages = $validationResult->getMessages();
+                        foreach($errorMessages as $errorMessage) {
+                            $this->addError($key, $errorMessage);
+                        }
+                    }
+                }
+            }
+        }
+
 
         return $object;
     }

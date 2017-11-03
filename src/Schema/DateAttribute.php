@@ -127,13 +127,21 @@ class DateAttribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function isValid($value, $context): bool
+    public function isValid($value, $context): ValidationResultInterface
     {
         // Workaround for null $value
         if(is_null($value)) {
             $value = "";
         }
-        return $this->getValidator()->isValid($value);
+
+        $validator = $this->getValidator();
+        $validationResult = new ValidationResult($validator->isValid($value));
+        $messages = $validator->getMessages();
+        foreach($messages as $message) {
+            $validationResult->addMessage($message);
+        }
+
+        return $validationResult;
     }
 
     /**
@@ -151,13 +159,5 @@ class DateAttribute implements AttributeInterface
     public function setRequired(bool $required)
     {
         $this->isRequired = $required;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getErrorMessages(): array
-    {
-        return $this->getValidator()->getMessages();
     }
 }
