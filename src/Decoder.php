@@ -76,8 +76,12 @@ class Decoder
      * @return mixed
      * @throws InvalidFormatException
      */
-    public function decodePostResource(string $data, array $schemaClasses, array $validators, bool $allowEphemeralId)
-    {
+    public function decodePostResource(
+        string $data,
+        array $schemaClasses,
+        array $validators = [],
+        bool $allowEphemeralId = false
+    ) {
         $this->initialize();
 
         // Decode root object
@@ -90,7 +94,16 @@ class Decoder
 
         $data = $root->data;
 
-        
+        // Throw exception if ephemeral IDs are not allowed
+        if(!$allowEphemeralId && property_exists($data, 'id')) {
+            throw new InvalidFormatException("Ephemeral IDs are not allowed.");
+        }
+
+        // Do not ignore missing fields
+        $resource = $this->decodeSingleResource($data, $schemaClasses, false);
+
+        // Return null if errors occurred
+        return $this->hasValidationErrors() ? null : $resource;
     }
 
     /**
@@ -135,10 +148,10 @@ class Decoder
 
         // Check if data is a single resource or a resource collection
         if(array_keys($data) !== range(0, count($data) - 1)) {
-            // Array is sequentially indexed, possibly a resource collection
+            // Array is possibly a single resource
             $resource = $this->decodeSingleResource($data, $schemaClasses, $ignoreMissingFields);
         } else {
-            // Array is possibly a single resource
+            // Array is sequentially indexed, possibly a resource collection
             $resource = $this->decodeResourceCollection($data, $schemaClasses, $ignoreMissingFields);
         }
 
@@ -179,20 +192,15 @@ class Decoder
 
     /**
      * Decode a single resource.
-     * @param array $data
+     * @param object $data
      * @param array $schemaClasses
      * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function decodeSingleResource(array $data, array $schemaClasses, bool $ignoreMissingFields)
+    private function decodeSingleResource($data, array $schemaClasses, bool $ignoreMissingFields)
     {
-        // Check if 'type' key is set
-        if(!isset($data['type'])) {
-            throw new InvalidFormatException("Resource 'type' is required");
-        }
-
-        $resourceType = $data['type'];
+        $resourceType = $data->type;
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
@@ -290,10 +298,10 @@ class Decoder
         $this->errors[] = $error;
     }
 
-    private function createResourceObject(array $data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
+    private function createResourceObject($data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
     {
-        $resourceType = $data['type'];
-        $resourceId = $data['id'] ?? null;
+        $resourceType = $data->type;
+        $resourceId = $data->id ?? null;
 
         // Return cached object if already cached
         if (!is_null($resourceId) && isset($this->objectCache[$resourceType][$resourceId])) {
@@ -318,8 +326,8 @@ class Decoder
         // FIRST PASS: Set attributes and relationships to context to prepare for validation
         // This is needed for interdependent validation
         // Set attributes
-        if (isset($data['attributes'])) {
-            $attributes = $data['attributes'];
+        if (property_exists($data, 'attributes')) {
+            $attributes = $data->attributes;
 
             // First pass, perform attribute pre-processing then add to current context array
             foreach($schemaAttributes as $schemaAttribute) {
@@ -327,7 +335,7 @@ class Decoder
                     $key = $schemaAttribute->getKey();
 
                     if(array_key_exists($key, $attributes)) {
-                        $value = $attributes[$key];
+                        $value = $attributes->{$key};
                         // Perform attribute pre-processing
                         $value = $schemaAttribute->filterValue($value);
 
@@ -341,36 +349,24 @@ class Decoder
         }
 
         // Set relationships
-        if (isset($data['relationships'])) {
-            $relationships = $data['relationships'];
-
-            if(!is_array($relationships)) {
-                throw new InvalidFormatException("Invalid format for relationships.");
-            }
+        if (property_exists($data, 'relationships')) {
+            $relationships = $data->relationships;
 
             foreach($schemaRelationships as $schemaRelationship) {
                 if($schemaRelationship instanceof ToOneRelationshipInterface &&
                     ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
                     $key = $schemaRelationship->getKey();
 
-                    if(isset($relationships[$key])) {
-                        if(!is_array($relationships[$key])) {
-                            throw new InvalidFormatException("Invalid format for relationships.");
-                        }
-
-                        $this->setToOneRelationshipContext($key, $relationships[$key]);
+                    if(property_exists($relationships, $key)) {
+                        $this->setToOneRelationshipContext($key, $relationships->{$key});
                         $this->context['modified'][] = $key;
                     }
                 } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
                     ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
                     $key = $schemaRelationship->getKey();
 
-                    if(isset($relationships[$key])) {
-                        if(!is_array($relationships[$key])) {
-                            throw new InvalidFormatException("Invalid format for relationships.");
-                        }
-
-                        $this->setToManyRelationshipContext($key, $relationships[$key]);
+                    if(property_exists($relationships, $key)) {
+                        $this->setToManyRelationshipContext($key, $relationships->{$key});
                         $this->context['modified'][] = $key;
                     }
                 }
@@ -484,41 +480,36 @@ class Decoder
         return $object;
     }
 
-    private function setToOneRelationshipContext($key, array $relationship): void
+    private function setToOneRelationshipContext($key, $relationship): void
     {
-        if(!array_key_exists('data', $relationship)) {
-            throw new InvalidFormatException("Key 'data' required for relationships");
+        $relationshipData = $relationship->data;
+        if(!is_null($relationshipData) && !is_object($relationshipData)) {
+            throw new InvalidFormatException("Invalid to-one relationship format.");
         }
 
-        $relationshipData = $relationship['data'];
-        if(!is_null($relationshipData)) {
-            if(!is_array($relationshipData) || !isset($relationshipData['type']) || !isset($relationshipData['id'])) {
-                throw new InvalidFormatException("Invalid format for relationships.");
-            }
-        }
-
-        $this->context['relationships'][$key] = $relationshipData;
+        $this->context['relationships'][$key] = [
+            'type' => $relationshipData->type,
+            'id' => $relationshipData->id
+        ];
     }
 
-    private function setToManyRelationshipContext($key, array $relationship): void
+    private function setToManyRelationshipContext($key, $relationship): void
     {
-        if(!array_key_exists('data', $relationship)) {
-            throw new InvalidFormatException("Key 'data' required for relationships");
-        }
-
-        $relationshipData = $relationship['data'];
+        $relationshipData = $relationship->data;
         if(!is_array($relationshipData)) {
-            throw new InvalidFormatException("Invalid format for to-many relationships");
+            throw new InvalidFormatException("Invalid to-many relationship format.");
         }
 
+        $relationships = [];
         foreach($relationshipData as $item) {
-            if (!is_array($item) || !isset($item['type']) || !isset($item['id'])) {
-                throw new InvalidFormatException("Invalid format for to-many relationships");
-            }
+            $relationships[] = [
+                'type' => $item->type,
+                'id' => $item->id
+            ];
         }
 
         // Set context
-        $this->context['relationships'][$key] = $relationshipData;
+        $this->context['relationships'][$key] = $relationships;
     }
 
     private function hydrateToOneRelationship(
