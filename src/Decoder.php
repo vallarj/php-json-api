@@ -24,6 +24,8 @@ use Vallarj\JsonApi\Error\ErrorDocument;
 use Vallarj\JsonApi\Error\Source\AttributePointer;
 use Vallarj\JsonApi\Error\Source\RelationshipPointer;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
+use Vallarj\JsonApi\JsonSchema\JsonSchemaValidator;
+use Vallarj\JsonApi\JsonSchema\JsonSchemaValidatorInterface;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
@@ -51,6 +53,9 @@ class Decoder
     /** @var Error[]  Errors of the last decoding operation */
     private $errors;
 
+    /** @var JsonSchemaValidatorInterface   JsonSchema Validator */
+    private $jsonSchemaValidator;
+
     /**
      * Decoder constructor.
      */
@@ -60,6 +65,32 @@ class Decoder
         $this->objectCache = [];
 
         $this->initialize();
+    }
+
+    /**
+     * Decodes a POST document into a new object from a compatible schema
+     * @param string $data
+     * @param array $schemaClasses
+     * @param array $validators
+     * @param bool $allowEphemeralId
+     * @return mixed
+     * @throws InvalidFormatException
+     */
+    public function decodePostResource(string $data, array $schemaClasses, array $validators, bool $allowEphemeralId)
+    {
+        $this->initialize();
+
+        // Decode root object
+        $root = json_decode($data);
+
+        // Validate if JSON API document compliant
+        if(json_last_error() !== JSON_ERROR_NONE || !$this->getJsonSchemaValidator()->isValidPostDocument($root)) {
+            throw new InvalidFormatException("Invalid document format.");
+        }
+
+        $data = $root->data;
+
+        
     }
 
     /**
@@ -553,5 +584,19 @@ class Decoder
         }
 
         return $this->objectCache[$mappingClass][$id];
+    }
+
+    public function getJsonSchemaValidator(): JsonSchemaValidatorInterface
+    {
+        if(!$this->jsonSchemaValidator) {
+            $this->jsonSchemaValidator = new JsonSchemaValidator();
+        }
+
+        return $this->jsonSchemaValidator;
+    }
+
+    public function setJsonSchemaValidator(JsonSchemaValidatorInterface $jsonSchemaValidator)
+    {
+        $this->jsonSchemaValidator = $jsonSchemaValidator;
     }
 }
