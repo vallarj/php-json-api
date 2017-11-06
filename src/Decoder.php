@@ -150,6 +150,33 @@ class Decoder
         array $schemaClasses
     ) {
         $this->initialize();
+
+        // Decode root object
+        $root = json_decode($data);
+
+        // Validate if JSON API document compliant
+        if(json_last_error() !== JSON_ERROR_NONE || !$this->getJsonSchemaValidator()->isValidToOneRelationshipDocument($root)) {
+            throw new InvalidFormatException("Invalid document format.");
+        }
+
+        $data = $root->data;
+
+        $resourceType = $data->type;
+        $compatibleSchema = null;
+
+        foreach($schemaClasses as $schemaClass) {
+            $schema = $this->getResourceSchema($schemaClass);
+            if($schema->getResourceType() == $resourceType) {
+                $compatibleSchema = $schema;
+                break;
+            }
+        }
+
+        if(!$compatibleSchema) {
+            throw new InvalidFormatException("Invalid 'type' given for this resource");
+        }
+
+        return $this->createResourceIdentifier($data, $compatibleSchema);
     }
 
     /**
@@ -164,6 +191,43 @@ class Decoder
         array $schemaClasses
     ) {
         $this->initialize();
+
+        // Decode root object
+        $root = json_decode($data);
+
+        // Validate if JSON API document compliant
+        if(json_last_error() !== JSON_ERROR_NONE || !$this->getJsonSchemaValidator()->isValidToManyRelationshipDocument($root)) {
+            throw new InvalidFormatException("Invalid document format.");
+        }
+
+        $data = $root->data;
+
+        $collection = [];
+
+        foreach($data as $item) {
+            $resourceType = $item->type;
+            $compatibleSchema = null;
+
+            foreach($schemaClasses as $schemaClass) {
+                $schema = $this->getResourceSchema($schemaClass);
+                if($schema->getResourceType() == $resourceType) {
+                    $compatibleSchema = $schema;
+                    break;
+                }
+            }
+
+            if(!$compatibleSchema) {
+                throw new InvalidFormatException("Invalid 'type' given for this resource");
+            }
+
+            $object = $this->createResourceIdentifier($item, $compatibleSchema);
+
+            if($object) {
+                $collection[] = $object;
+            }
+        }
+
+        return $collection;
     }
 
     /**
@@ -357,6 +421,34 @@ class Decoder
         $error->setSource(new RelationshipPointer($relationship));
         $error->setDetail($detail);
         $this->errors[] = $error;
+    }
+
+    private function createResourceIdentifier($data, AbstractResourceSchema $schema)
+    {
+        $resourceType = $data->type;
+        $resourceId = $data->id;
+
+        // Return cached object if already cached
+        if(!is_null($resourceId) && isset($this->objectCache[$resourceType][$resourceId])) {
+            return $this->objectCache[$resourceType][$resourceId];
+        }
+
+        // Return cached object if already cached
+        if (!is_null($resourceId) && isset($this->objectCache[$resourceType][$resourceId])) {
+            return $this->objectCache[$resourceType][$resourceId];
+        }
+
+        // Get the resource class
+        $resourceClass = $schema->getMappingClass();
+
+        // Create the object
+        $object = new $resourceClass;
+
+        // Set the resource ID
+        $schema->setResourceId($object, $resourceId);
+
+        // Return the object
+        return $object;
     }
 
     private function createResourceObject($data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
