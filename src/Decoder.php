@@ -437,7 +437,7 @@ class Decoder
                         $this->hydrateToManyRelationship($schemaRelationship, $object, [], $expectedSchemas);
                     }
                 } else {
-                    $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
+                    $validationResult = $schemaRelationship->isValid($relationship, $this->context);
                     if($validationResult->isValid()) {
                         $this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
                     } else {
