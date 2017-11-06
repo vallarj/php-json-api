@@ -46,10 +46,20 @@ class JsonSchemaValidator implements JsonSchemaValidatorInterface
     /**
      * @inheritdoc
      */
-    public function isValidRelationshipDocument(\stdClass $data)
+    public function isValidToOneRelationshipDocument(\stdClass $data)
     {
         $validator = new Validator;
-        $validator->validate($data, $this->getRelationshipSchema());
+        $validator->validate($data, $this->getToOneRelationshipSchema());
+        return $validator->isValid();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValidToManyRelationshipDocument(\stdClass $data)
+    {
+        $validator = new Validator;
+        $validator->validate($data, $this->getToManyRelationshipSchema());
         return $validator->isValid();
     }
 
@@ -265,24 +275,12 @@ class JsonSchemaValidator implements JsonSchemaValidatorInterface
      * Returns the JSON schema for the JSON API Relationship request document
      * @return \stdClass
      */
-    private function getRelationshipSchema(): \stdClass
+    private function getToOneRelationshipSchema(): \stdClass
     {
         return (object) [
             'type' => 'object',
             'properties' => (object) [
                 'data' => (object) [
-                    'oneOf' => [
-                        (object) [
-                            '$ref' => '#/definitions/relationshipToOne',
-                        ],
-                        (object) [
-                            '$ref' => '#/definitions/relationshipToMany',
-                        ],
-                    ],
-                ],
-            ],
-            'definitions' => (object) [
-                'relationshipToOne' => (object) [
                     'anyOf' => [
                         (object) [
                             '$ref' => '#/definitions/empty',
@@ -292,16 +290,46 @@ class JsonSchemaValidator implements JsonSchemaValidatorInterface
                         ],
                     ],
                 ],
-                'relationshipToMany' => (object) [
+            ],
+            'definitions' => (object) [
+                'empty' => (object) [
+                    'type' => 'null',
+                ],
+                'linkage' => (object) [
+                    'type' => 'object',
+                    'required' => ['type', 'id'],
+                    'properties' => (object) [
+                        'type' => (object) [
+                            'type' => 'string',
+                        ],
+                        'id' => (object) [
+                            'type' => 'string',
+                        ],
+                    ],
+                    'additionalProperties' => false,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Returns the JSON schema for the JSON API Relationship request document
+     * @return \stdClass
+     */
+    private function getToManyRelationshipSchema(): \stdClass
+    {
+        return (object) [
+            'type' => 'object',
+            'properties' => (object) [
+                'data' => (object) [
                     'type' => 'array',
                     'items' => (object) [
                         '$ref' => '#/definitions/linkage',
                     ],
                     'uniqueItems' => true,
                 ],
-                'empty' => (object) [
-                    'type' => 'null',
-                ],
+            ],
+            'definitions' => (object) [
                 'linkage' => (object) [
                     'type' => 'object',
                     'required' => ['type', 'id'],

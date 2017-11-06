@@ -2,19 +2,6 @@
   "type": "object",
   "properties": {
     "data": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/relationshipToOne"
-        },
-        {
-          "$ref": "#/definitions/relationshipToMany"
-        }
-      ]
-    }
-  },
-
-  "definitions": {
-    "relationshipToOne": {
       "anyOf": [
         {
           "$ref": "#/definitions/empty"
@@ -23,16 +10,10 @@
           "$ref": "#/definitions/linkage"
         }
       ]
-    },
+    }
+  },
 
-    "relationshipToMany": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/linkage"
-      },
-      "uniqueItems": true
-    },
-
+  "definitions": {
     "empty": {
       "type": "null"
     },

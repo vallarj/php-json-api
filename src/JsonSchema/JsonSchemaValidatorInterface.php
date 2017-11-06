@@ -36,9 +36,16 @@ interface JsonSchemaValidatorInterface
     public function isValidPatchDocument(\stdClass $data);
 
     /**
-     * Returns true if data, decoded with json_decode, is a compliant JSON API Relationship document
+     * Returns true if data, decoded with json_decode, is a compliant JSON API To-one Relationship document
      * @param \stdClass $data
      * @return mixed
      */
-    public function isValidRelationshipDocument(\stdClass $data);
+    public function isValidToOneRelationshipDocument(\stdClass $data);
+
+    /**
+     * Returns true if data, decoded with json_decode, is a compliant JSON API To-many Relationship document
+     * @param \stdClass $data
+     * @return mixed
+     */
+    public function isValidToManyRelationshipDocument(\stdClass $data);
 }

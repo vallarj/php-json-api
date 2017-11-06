@@ -139,6 +139,34 @@ class Decoder
     }
 
     /**
+     * Decodes a To-one relationship request into a new object from a compatible schema
+     * @param string $data
+     * @param array $schemaClasses
+     * @return mixed
+     * @throws InvalidFormatException
+     */
+    public function decodeToOneRelationshipRequest(
+        string $data,
+        array $schemaClasses
+    ) {
+        $this->initialize();
+    }
+
+    /**
+     * Decodes a To-many relationship request into new objects from a compatible schema
+     * @param string $data
+     * @param array $schemaClasses
+     * @return mixed
+     * @throws InvalidFormatException
+     */
+    public function decodeToManyRelationshipRequest(
+        string $data,
+        array $schemaClasses
+    ) {
+        $this->initialize();
+    }
+
+    /**
      * Decodes the document into a new object from a compatible schema.
      * @deprecated
      * @param string $data
