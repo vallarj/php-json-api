@@ -107,7 +107,40 @@ class Decoder
     }
 
     /**
+     * Decodes a PATCH document into a new object from a compatible schema
+     * @param string $data
+     * @param array $schemaClasses
+     * @param array $validators
+     * @return mixed
+     * @throws InvalidFormatException
+     */
+    public function decodePatchResource(
+        string $data,
+        array $schemaClasses,
+        array $validators = []
+    ) {
+        $this->initialize();
+
+        // Decode root object
+        $root = json_decode($data);
+
+        // Validate if JSON API document compliant
+        if(json_last_error() !== JSON_ERROR_NONE || !$this->getJsonSchemaValidator()->isValidPatchDocument($root)) {
+            throw new InvalidFormatException("Invalid document format.");
+        }
+
+        $data = $root->data;
+
+        // Ignore missing fields
+        $resource = $this->decodeSingleResource($data, $schemaClasses, true);
+
+        // Return null if errors occurred
+        return $this->hasValidationErrors() ? null : $resource;
+    }
+
+    /**
      * Decodes the document into a new object from a compatible schema.
+     * @deprecated
      * @param string $data
      * @param array $schemaClasses
      * @param bool $ignoreMissingFields
