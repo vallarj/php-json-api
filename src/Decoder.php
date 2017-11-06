@@ -304,8 +304,6 @@ class Decoder
                         // dependent validation is performed
                         $this->context['attributes'][$key] = $value;
                         $this->context['modified'][] = $key;
-                    } else {
-                        $this->context['attributes'][$key] = null;
                     }
                 }
             }
@@ -331,8 +329,6 @@ class Decoder
 
                         $this->setToOneRelationshipContext($key, $relationships[$key]);
                         $this->context['modified'][] = $key;
-                    } else {
-                        $this->context['relationships'][$key] = null;
                     }
                 } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
                     ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
@@ -345,8 +341,6 @@ class Decoder
 
                         $this->setToManyRelationshipContext($key, $relationships[$key]);
                         $this->context['modified'][] = $key;
-                    } else {
-                        $this->context['relationships'][$key] = [];
                     }
                 }
             }
@@ -359,7 +353,7 @@ class Decoder
                 $key = $schemaAttribute->getKey();
 
                 $attributeContext = $this->context['attributes'];
-                $value = $attributeContext[$key];
+                $value = $attributeContext[$key] ?? null;
 
                 // Null may mean request sent null or request missing attribute
                 if(is_null($value)) {
@@ -395,7 +389,7 @@ class Decoder
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
-                $relationship = $this->context['relationships'][$key];
+                $relationship = $this->context['relationships'][$key] ?? null;
 
                 // Null may mean request sent null or request missing relationship
                 if(is_null($relationship)) {
@@ -427,7 +421,7 @@ class Decoder
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
-                $relationship = $this->context['relationships'][$key];
+                $relationship = $this->context['relationships'][$key] ?? [];
 
                 // Empty may mean request sent empty collection or request missing relationship
                 if(empty($relationship)) {
