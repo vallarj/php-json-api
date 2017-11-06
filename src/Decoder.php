@@ -493,7 +493,7 @@ class Decoder
     private function hydrateToOneRelationship(
         ToOneRelationshipInterface $schemaRelationship,
         $parentObject,
-        array $relationship,
+        ?array $relationship,
         array $expectedSchemas
     ): bool
     {
