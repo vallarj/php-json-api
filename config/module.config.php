@@ -28,4 +28,10 @@ return [
             Encoder::class => EncoderFactory::class,
         ],
     ],
+    'lazy_services' => [
+        'class_map' => [
+            Decoder::class => Decoder::class,
+            Encoder::class => Encoder::class
+        ],
+    ],
 ];
