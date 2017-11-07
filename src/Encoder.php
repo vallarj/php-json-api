@@ -25,7 +25,7 @@ use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
-class Encoder
+class Encoder implements EncoderInterface
 {
     /** @var array Stores already instantiated ResourceSchemas */
     private $schemaCache;
@@ -51,7 +51,9 @@ class Encoder
 
         $this->initializeService();
     }
-
+    /**
+     * @inheritdoc
+     */
     public function encode($resource, array $schemaClasses, array $includedKeys = []): string
     {
         $this->initializeService($includedKeys);

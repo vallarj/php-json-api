@@ -31,7 +31,7 @@ use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
-class Decoder
+class Decoder implements DecoderInterface
 {
     /** @var AbstractResourceSchema[]   Cache of instantiated schemas */
     private $schemaCache;
@@ -68,13 +68,7 @@ class Decoder
     }
 
     /**
-     * Decodes a POST document into a new object from a compatible schema
-     * @param string $data
-     * @param array $schemaClasses
-     * @param array $validators
-     * @param bool $allowEphemeralId
-     * @return mixed
-     * @throws InvalidFormatException
+     * @inheritdoc
      */
     public function decodePostResource(
         string $data,
@@ -107,12 +101,7 @@ class Decoder
     }
 
     /**
-     * Decodes a PATCH document into a new object from a compatible schema
-     * @param string $data
-     * @param array $schemaClasses
-     * @param array $validators
-     * @return mixed
-     * @throws InvalidFormatException
+     * @inheritdoc
      */
     public function decodePatchResource(
         string $data,
@@ -139,11 +128,7 @@ class Decoder
     }
 
     /**
-     * Decodes a To-one relationship request into a new object from a compatible schema
-     * @param string $data
-     * @param array $schemaClasses
-     * @return mixed
-     * @throws InvalidFormatException
+     * @inheritdoc
      */
     public function decodeToOneRelationshipRequest(
         string $data,
@@ -180,11 +165,7 @@ class Decoder
     }
 
     /**
-     * Decodes a To-many relationship request into new objects from a compatible schema
-     * @param string $data
-     * @param array $schemaClasses
-     * @return mixed
-     * @throws InvalidFormatException
+     * @inheritdoc
      */
     public function decodeToManyRelationshipRequest(
         string $data,
