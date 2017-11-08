@@ -367,7 +367,7 @@ class Decoder implements DecoderInterface
             if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                 $key = $schemaAttribute->getKey();
 
-                if(property_exists($key, $attributes)) {
+                if(property_exists($attributes, $key)) {
                     $value = $attributes->{$key};
                     // Perform attribute pre-processing
                     $value = $schemaAttribute->filterValue($value);
