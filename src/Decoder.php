@@ -90,8 +90,12 @@ class Decoder implements DecoderInterface
         $data = $root->data;
 
         // Throw exception if ephemeral IDs are not allowed
-        if(!$allowEphemeralId && property_exists($data, 'id')) {
-            throw new InvalidFormatException("Ephemeral IDs are not allowed.");
+        if(property_exists($data, 'id')) {
+            if(!$allowEphemeralId) {
+                throw new InvalidFormatException("Ephemeral IDs are not allowed.");
+            } else {
+                $this->context['id'] = $data->id;
+            }
         }
 
         // Do not ignore missing fields
@@ -118,8 +122,11 @@ class Decoder implements DecoderInterface
         if(json_last_error() !== JSON_ERROR_NONE || !$this->getJsonSchemaValidator()->isValidPatchDocument($root)) {
             throw new InvalidFormatException("Invalid document format.");
         }
-
+        
         $data = $root->data;
+
+        // Set context ID
+        $this->context['id'] = $data->id;
 
         // Ignore missing fields
         $resource = $this->decodeSingleResource($data, $schemaClasses, true);
