@@ -33,8 +33,8 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Decoder implements DecoderInterface
 {
-    /** @var AbstractResourceSchema[]   Cache of instantiated schemas */
-    private $schemaCache;
+    /** @var SchemaManagerInterface Handles resource schema instances */
+    private $schemaManager;
 
     /** @var array  Cache of instantiated objects */
     private $objectCache;
@@ -58,10 +58,11 @@ class Decoder implements DecoderInterface
 
     /**
      * Decoder constructor.
+     * @param SchemaManagerInterface $schemaManager
      */
-    function __construct()
+    function __construct(SchemaManagerInterface $schemaManager)
     {
-        $this->schemaCache = [];
+        $this->schemaManager = $schemaManager;
         $this->objectCache = [];
 
         $this->initialize();
@@ -150,7 +151,7 @@ class Decoder implements DecoderInterface
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -190,7 +191,7 @@ class Decoder implements DecoderInterface
             $compatibleSchema = null;
 
             foreach($schemaClasses as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getResourceType() == $resourceType) {
                     $compatibleSchema = $schema;
                     break;
@@ -209,60 +210,6 @@ class Decoder implements DecoderInterface
         }
 
         return $collection;
-    }
-
-    /**
-     * Decodes the document into a new object from a compatible schema.
-     * @deprecated
-     * @param string $data
-     * @param array $schemaClasses
-     * @param bool $ignoreMissingFields
-     * @return mixed
-     * @throws InvalidFormatException
-     */
-    public function decode(string $data, array $schemaClasses, bool $ignoreMissingFields = false)
-    {
-        $this->initialize();
-
-        // Decode root object
-        $root = json_decode($data, true);
-
-        if(json_last_error() !== JSON_ERROR_NONE) {
-            throw new InvalidFormatException("Invalid document format.");
-        }
-
-        // Check if data key is set
-        if(!array_key_exists('data', $root)) {
-            throw new InvalidFormatException("Key 'data' is required");
-        }
-
-        $data = $root['data'];
-
-        if(is_null($data)) {
-            // Empty single resource
-            return null;
-        }
-
-        if(!is_array($data)) {
-            throw new InvalidFormatException("Invalid 'data' format");
-        }
-
-        if(array() === $data) {
-            // Empty resource collection
-            return [];
-        }
-
-        // Check if data is a single resource or a resource collection
-        if(array_keys($data) !== range(0, count($data) - 1)) {
-            // Array is possibly a single resource
-            $resource = $this->decodeSingleResource($data, $schemaClasses, $ignoreMissingFields);
-        } else {
-            // Array is sequentially indexed, possibly a resource collection
-            $resource = $this->decodeResourceCollection($data, $schemaClasses, $ignoreMissingFields);
-        }
-
-        // Return null if errors occurred
-        return $this->hasValidationErrors() ? null : $resource;
     }
 
     /**
@@ -310,7 +257,7 @@ class Decoder implements DecoderInterface
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -322,57 +269,6 @@ class Decoder implements DecoderInterface
         }
 
         return $this->createResourceObject($data, $compatibleSchema, $ignoreMissingFields);
-    }
-
-    /**
-     * Decode a resource collection.
-     * @param array $data
-     * @param array $schemaClasses
-     * @param bool $ignoreMissingFields
-     * @return mixed
-     * @throws InvalidFormatException
-     */
-    private function decodeResourceCollection(array $data, array $schemaClasses, bool $ignoreMissingFields)
-    {
-        $collection = [];
-
-        foreach($data as $item) {
-            if(!isset($item['type'])) {
-                throw new InvalidFormatException("Resource 'type' is required");
-            }
-
-            $resourceType = $item['type'];
-            $compatibleSchema = null;
-
-            foreach($schemaClasses as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
-                if($schema->getResourceType() == $resourceType) {
-                    $compatibleSchema = $schema;
-                    break;
-                }
-            }
-
-            if(!$compatibleSchema) {
-                throw new InvalidFormatException("Invalid 'type' given for this resource");
-            }
-
-            $object = $this->createResourceObject($item, $compatibleSchema, $ignoreMissingFields);
-
-            if($object) {
-                $collection[] = $object;
-            }
-        }
-
-        return $collection;
-    }
-
-    private function getResourceSchema(string $schemaClass): AbstractResourceSchema
-    {
-        if(!isset($this->schemaCache[$schemaClass])) {
-            $this->schemaCache[$schemaClass] = new $schemaClass;
-        }
-
-        return $this->schemaCache[$schemaClass];
     }
 
     public function getErrorDocument(): ?ErrorDocument
@@ -471,7 +367,7 @@ class Decoder implements DecoderInterface
             if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
                 $key = $schemaAttribute->getKey();
 
-                if(property_exists($key, $attributes)) {
+                if(property_exists($attributes, $key)) {
                     $value = $attributes->{$key};
                     // Perform attribute pre-processing
                     $value = $schemaAttribute->filterValue($value);
@@ -670,7 +566,7 @@ class Decoder implements DecoderInterface
         }
 
         foreach($expectedSchemas as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $relationship['type']) {
                 $object = $this->resolveRelationshipObject($schema, $relationship['id']);
                 $schemaRelationship->setObject($parentObject, $object);
@@ -696,7 +592,7 @@ class Decoder implements DecoderInterface
         $modifiedCount = 0;
         foreach($relationship as $item) {
             foreach($expectedSchemas as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getResourceType() == $item['type']) {
                     $object = $this->resolveRelationshipObject($schema, $item['id']);
                     $schemaRelationship->addItem($parentObject, $object);
