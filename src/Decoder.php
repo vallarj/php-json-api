@@ -462,22 +462,26 @@ class Decoder implements DecoderInterface
         // Set attributes
         if (property_exists($data, 'attributes')) {
             $attributes = $data->attributes;
+        } else {
+            $attributes = (object)[];
+        }
 
-            // First pass, perform attribute pre-processing then add to current context array
-            foreach($schemaAttributes as $schemaAttribute) {
-                if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
-                    $key = $schemaAttribute->getKey();
+        // Perform attribute pre-processing then add to current context array
+        foreach($schemaAttributes as $schemaAttribute) {
+            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+                $key = $schemaAttribute->getKey();
 
-                    if(array_key_exists($key, $attributes)) {
-                        $value = $attributes->{$key};
-                        // Perform attribute pre-processing
-                        $value = $schemaAttribute->filterValue($value);
+                if(property_exists($key, $attributes)) {
+                    $value = $attributes->{$key};
+                    // Perform attribute pre-processing
+                    $value = $schemaAttribute->filterValue($value);
 
-                        // Add to context. This is necessary so that all values will be available if
-                        // dependent validation is performed
-                        $this->context['attributes'][$key] = $value;
-                        $this->context['modified'][] = $key;
-                    }
+                    // Add to context. This is necessary so that all values will be available if
+                    // dependent validation is performed
+                    $this->context['attributes'][$key] = $value;
+                    $this->context['modified'][] = $key;
+                } else {
+                    $this->context['attributes'][$key] = null;
                 }
             }
         }
@@ -485,24 +489,31 @@ class Decoder implements DecoderInterface
         // Set relationships
         if (property_exists($data, 'relationships')) {
             $relationships = $data->relationships;
+        } else {
+            $relationships = (object)[];
+        }
 
-            foreach($schemaRelationships as $schemaRelationship) {
-                if($schemaRelationship instanceof ToOneRelationshipInterface &&
-                    ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
-                    $key = $schemaRelationship->getKey();
+        // Add relationships to current context array
+        foreach($schemaRelationships as $schemaRelationship) {
+            if($schemaRelationship instanceof ToOneRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
+                $key = $schemaRelationship->getKey();
 
-                    if(property_exists($relationships, $key)) {
-                        $this->setToOneRelationshipContext($key, $relationships->{$key});
-                        $this->context['modified'][] = $key;
-                    }
-                } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
-                    ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
-                    $key = $schemaRelationship->getKey();
+                if(property_exists($relationships, $key)) {
+                    $this->setToOneRelationshipContext($key, $relationships->{$key});
+                    $this->context['modified'][] = $key;
+                } else {
+                    $this->context['relationships'][$key] = null;
+                }
+            } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
+                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
+                $key = $schemaRelationship->getKey();
 
-                    if(property_exists($relationships, $key)) {
-                        $this->setToManyRelationshipContext($key, $relationships->{$key});
-                        $this->context['modified'][] = $key;
-                    }
+                if(property_exists($relationships, $key)) {
+                    $this->setToManyRelationshipContext($key, $relationships->{$key});
+                    $this->context['modified'][] = $key;
+                } else {
+                    $this->context['relationships'][$key] = [];
                 }
             }
         }
@@ -514,7 +525,7 @@ class Decoder implements DecoderInterface
                 $key = $schemaAttribute->getKey();
 
                 $attributeContext = $this->context['attributes'];
-                $value = $attributeContext[$key] ?? null;
+                $value = $attributeContext[$key];
 
                 // Null may mean request sent null or request missing attribute
                 if(is_null($value)) {
@@ -550,7 +561,7 @@ class Decoder implements DecoderInterface
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
-                $relationship = $this->context['relationships'][$key] ?? null;
+                $relationship = $this->context['relationships'][$key];
 
                 // Null may mean request sent null or request missing relationship
                 if(is_null($relationship)) {
@@ -582,7 +593,7 @@ class Decoder implements DecoderInterface
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
-                $relationship = $this->context['relationships'][$key] ?? [];
+                $relationship = $this->context['relationships'][$key];
 
                 // Empty may mean request sent empty collection or request missing relationship
                 if(empty($relationship)) {
