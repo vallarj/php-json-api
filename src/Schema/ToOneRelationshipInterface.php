@@ -78,6 +78,12 @@ interface ToOneRelationshipInterface
     public function isValid($id, $type, $context): ValidationResultInterface;
 
     /**
+     * Returns true if validators should be run if value is null
+     * @return bool
+     */
+    public function validateIfEmpty(): bool;
+
+    /**
      * Returns true if attribute is required
      * @return bool
      */
