@@ -19,13 +19,15 @@
 namespace Vallarj\JsonApi;
 
 
+use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+
 interface SchemaManagerInterface
 {
     /**
      * Retrieve a resource schema from the manager by name
      *
      * @param $name
-     * @return mixed
+     * @return AbstractResourceSchema
      */
     public function get($name);
 }
