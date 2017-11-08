@@ -33,8 +33,8 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Decoder implements DecoderInterface
 {
-    /** @var AbstractResourceSchema[]   Cache of instantiated schemas */
-    private $schemaCache;
+    /** @var SchemaManagerInterface Handles resource schema instances */
+    private $schemaManager;
 
     /** @var array  Cache of instantiated objects */
     private $objectCache;
@@ -58,10 +58,11 @@ class Decoder implements DecoderInterface
 
     /**
      * Decoder constructor.
+     * @param SchemaManagerInterface $schemaManager
      */
-    function __construct()
+    function __construct(SchemaManagerInterface $schemaManager)
     {
-        $this->schemaCache = [];
+        $this->schemaManager = $schemaManager;
         $this->objectCache = [];
 
         $this->initialize();
@@ -150,7 +151,7 @@ class Decoder implements DecoderInterface
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -190,7 +191,7 @@ class Decoder implements DecoderInterface
             $compatibleSchema = null;
 
             foreach($schemaClasses as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getResourceType() == $resourceType) {
                     $compatibleSchema = $schema;
                     break;
@@ -310,7 +311,7 @@ class Decoder implements DecoderInterface
         $compatibleSchema = null;
 
         foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -345,7 +346,7 @@ class Decoder implements DecoderInterface
             $compatibleSchema = null;
 
             foreach($schemaClasses as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getResourceType() == $resourceType) {
                     $compatibleSchema = $schema;
                     break;
@@ -364,15 +365,6 @@ class Decoder implements DecoderInterface
         }
 
         return $collection;
-    }
-
-    private function getResourceSchema(string $schemaClass): AbstractResourceSchema
-    {
-        if(!isset($this->schemaCache[$schemaClass])) {
-            $this->schemaCache[$schemaClass] = new $schemaClass;
-        }
-
-        return $this->schemaCache[$schemaClass];
     }
 
     public function getErrorDocument(): ?ErrorDocument
@@ -670,7 +662,7 @@ class Decoder implements DecoderInterface
         }
 
         foreach($expectedSchemas as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getResourceType() == $relationship['type']) {
                 $object = $this->resolveRelationshipObject($schema, $relationship['id']);
                 $schemaRelationship->setObject($parentObject, $object);
@@ -696,7 +688,7 @@ class Decoder implements DecoderInterface
         $modifiedCount = 0;
         foreach($relationship as $item) {
             foreach($expectedSchemas as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getResourceType() == $item['type']) {
                     $object = $this->resolveRelationshipObject($schema, $item['id']);
                     $schemaRelationship->addItem($parentObject, $object);

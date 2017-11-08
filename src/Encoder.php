@@ -45,6 +45,10 @@ class Encoder implements EncoderInterface
     /** @var bool Indicates if the last operation was successful */
     private $success;
 
+    /**
+     * Encoder constructor.
+     * @param SchemaManagerInterface $schemaManager
+     */
     function __construct(SchemaManagerInterface $schemaManager)
     {
         $this->schemaManager = $schemaManager;
