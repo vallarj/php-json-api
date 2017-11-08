@@ -16,21 +16,10 @@
  *
  */
 
-namespace Vallarj\JsonApi\Factory;
+namespace Vallarj\JsonApi\Exception;
 
 
-use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
-use Vallarj\JsonApi\Decoder;
-use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
-use Zend\ServiceManager\Factory\FactoryInterface;
-
-class DecoderFactory implements FactoryInterface
+class InvalidValidatorException extends \Exception
 {
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
-    {
-        return new Decoder($container->get(SchemaManager::class));
-    }
+
 }

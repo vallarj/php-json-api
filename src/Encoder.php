@@ -25,10 +25,10 @@ use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
-class Encoder
+class Encoder implements EncoderInterface
 {
-    /** @var array Stores already instantiated ResourceSchemas */
-    private $schemaCache;
+    /** @var SchemaManagerInterface Handles resource schema instances */
+    private $schemaManager;
 
     /** @var array Keys of relationships to include in the current operation */
     private $includedKeys;
@@ -45,13 +45,19 @@ class Encoder
     /** @var bool Indicates if the last operation was successful */
     private $success;
 
-    function __construct()
+    /**
+     * Encoder constructor.
+     * @param SchemaManagerInterface $schemaManager
+     */
+    function __construct(SchemaManagerInterface $schemaManager)
     {
-        $this->schemaCache = [];
+        $this->schemaManager = $schemaManager;
 
         $this->initializeService();
     }
-
+    /**
+     * @inheritdoc
+     */
     public function encode($resource, array $schemaClasses, array $includedKeys = []): string
     {
         $this->initializeService($includedKeys);
@@ -99,7 +105,7 @@ class Encoder
         $resourceClass = get_class($resource);
 
         foreach($schemaClasses as $schemaClass) {
-            $schema = $this->getResourceSchema($schemaClass);
+            $schema = $this->schemaManager->get($schemaClass);
             if($schema->getMappingClass() == $resourceClass) {
                 // Extract resource data
                 $this->data = $this->extractResource($resource, $schema);
@@ -117,7 +123,7 @@ class Encoder
             $compatibleSchema = null;
 
             foreach($schemaClasses as $schemaClass) {
-                $schema = $this->getResourceSchema($schemaClass);
+                $schema = $this->schemaManager->get($schemaClass);
                 if($schema->getMappingClass() == $resourceClass) {
                     $compatibleSchema = $schema;
                 }
@@ -130,15 +136,6 @@ class Encoder
             // Extract resource data
             $this->data[] = $this->extractResource($resource, $compatibleSchema);
         }
-    }
-
-    private function getResourceSchema(string $schemaClass): AbstractResourceSchema
-    {
-        if(!isset($this->schemaCache[$schemaClass])) {
-            $this->schemaCache[$schemaClass] = new $schemaClass;
-        }
-
-        return $this->schemaCache[$schemaClass];
     }
 
     private function extractResource($object, AbstractResourceSchema $schema): array
@@ -186,7 +183,7 @@ class Encoder
         // Build the return data
         $data = [
             'type' => $schema->getResourceType(),
-            'id' => $schema->getResourceId($object),
+            'id' => (string)$schema->getResourceId($object),
         ];
 
         // Include attributes if not empty
@@ -206,7 +203,7 @@ class Encoder
     {
         $schema = null;
         foreach($expectedSchemas as $schemaClass) {
-            $testSchema = $this->getResourceSchema($schemaClass);
+            $testSchema = $this->schemaManager->get($schemaClass);
             if($testSchema->getMappingClass() == get_class($mappedObject)) {
                 // Extract resource data
                 $schema = $testSchema;
@@ -239,7 +236,7 @@ class Encoder
 
         return [
             'type' => $resourceType,
-            'id' => $resourceId
+            'id' => (string)$resourceId
         ];
     }
 }

@@ -16,21 +16,18 @@
  *
  */
 
-namespace Vallarj\JsonApi\Factory;
+namespace Vallarj\JsonApi;
 
 
-use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
-use Vallarj\JsonApi\Decoder;
-use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
-use Zend\ServiceManager\Factory\FactoryInterface;
+use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 
-class DecoderFactory implements FactoryInterface
+interface SchemaManagerInterface
 {
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
-    {
-        return new Decoder($container->get(SchemaManager::class));
-    }
+    /**
+     * Retrieve a resource schema from the manager by name
+     *
+     * @param $name
+     * @return AbstractResourceSchema
+     */
+    public function get($name);
 }

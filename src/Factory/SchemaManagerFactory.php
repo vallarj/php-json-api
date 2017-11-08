@@ -20,17 +20,35 @@ namespace Vallarj\JsonApi\Factory;
 
 
 use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
-use Vallarj\JsonApi\Decoder;
 use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
+use Zend\ServiceManager\Config;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
-class DecoderFactory implements FactoryInterface
+class SchemaManagerFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        return new Decoder($container->get(SchemaManager::class));
+        // Create the schema manager
+        $pluginManager = new SchemaManager($container, $options ?: []);
+
+        // If config service is not available, return schema manager
+        if(!$container->has('config')) {
+            return $pluginManager;
+        }
+
+        $config = $container->get('config');
+
+        // Get `json_api` config key
+        $jsonApiConfig = $config['json_api'] ?? [];
+
+        // If `schema_manager` configuration is missing, return schema manager
+        if(!isset($jsonApiConfig['schema_manager']) || !is_array($jsonApiConfig['schema_manager'])) {
+            return $pluginManager;
+        }
+
+        // Wire service configuration
+        (new Config($jsonApiConfig['schema_manager']))->configureServiceManager($pluginManager);
+
+        return $pluginManager;
     }
 }

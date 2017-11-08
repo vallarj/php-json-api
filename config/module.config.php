@@ -20,12 +20,20 @@ namespace Vallarj\JsonApi;
 
 use Vallarj\JsonApi\Factory\DecoderFactory;
 use Vallarj\JsonApi\Factory\EncoderFactory;
+use Vallarj\JsonApi\Factory\SchemaManagerFactory;
 
 return [
     'service_manager' => [
         'factories' => [
             Decoder::class => DecoderFactory::class,
             Encoder::class => EncoderFactory::class,
+            SchemaManager::class => SchemaManagerFactory::class,
+        ],
+    ],
+    'lazy_services' => [
+        'class_map' => [
+            Decoder::class => Decoder::class,
+            Encoder::class => Encoder::class
         ],
     ],
 ];

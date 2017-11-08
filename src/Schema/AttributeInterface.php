@@ -55,4 +55,25 @@ interface AttributeInterface
      * @return int
      */
     public function getAccessType(): int;
+
+    /**
+     * Returns a pre-processed value of the input value
+     * @param $value
+     * @return mixed
+     */
+    public function filterValue($value);
+
+    /**
+     * Returns ValidationResultInterface that represents the result of the validation
+     * @param mixed $value
+     * @param array $context    The context this attribute belongs to
+     * @return ValidationResultInterface
+     */
+    public function isValid($value, $context): ValidationResultInterface;
+
+    /**
+     * Returns true if attribute is required
+     * @return bool
+     */
+    public function isRequired(): bool;
 }

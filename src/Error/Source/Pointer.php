@@ -16,21 +16,36 @@
  *
  */
 
-namespace Vallarj\JsonApi\Factory;
+namespace Vallarj\JsonApi\Error\Source;
 
 
-use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
-use Vallarj\JsonApi\Decoder;
-use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
-use Zend\ServiceManager\Factory\FactoryInterface;
-
-class DecoderFactory implements FactoryInterface
+class Pointer implements SourceInterface
 {
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    /** @var string Reference to the error */
+    private $reference;
+
+    /**
+     * Pointer constructor.
+     * @param string $reference
+     */
+    function __construct(string $reference)
     {
-        return new Decoder($container->get(SchemaManager::class));
+        $this->reference = $reference;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getType(): string
+    {
+        return "pointer";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getReference(): string
+    {
+        return $this->reference;
     }
 }

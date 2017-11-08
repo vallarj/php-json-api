@@ -16,10 +16,36 @@
  *
  */
 
-namespace Vallarj\JsonApi\Exception;
+namespace Vallarj\JsonApi\Error\Source;
 
 
-class InvalidConfigurationException extends \Exception
+class Parameter implements SourceInterface
 {
+    /** @var string Indicates which URI query parameter caused the error */
+    private $uri;
 
+    /**
+     * Parameter constructor.
+     * @param string $uri
+     */
+    function __construct(string $uri)
+    {
+        $this->uri = $uri;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getType(): string
+    {
+        return 'parameter';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getReference(): string
+    {
+        // TODO: Implement getReference() method.
+    }
 }

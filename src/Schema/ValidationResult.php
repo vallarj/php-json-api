@@ -16,21 +16,42 @@
  *
  */
 
-namespace Vallarj\JsonApi\Factory;
+namespace Vallarj\JsonApi\Schema;
 
 
-use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
-use Vallarj\JsonApi\Decoder;
-use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
-use Zend\ServiceManager\Factory\FactoryInterface;
-
-class DecoderFactory implements FactoryInterface
+class ValidationResult implements ValidationResultInterface
 {
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    private $valid;
+    private $messages;
+
+    function __construct(bool $isValid)
     {
-        return new Decoder($container->get(SchemaManager::class));
+        $this->valid = $isValid;
+        $this->messages = [];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValid(): bool
+    {
+        return $this->valid;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getMessages(): array
+    {
+        return $this->messages;
+    }
+
+    /**
+     * Add a message
+     * @param string $message
+     */
+    public function addMessage(string $message)
+    {
+        $this->messages[] = $message;
     }
 }
