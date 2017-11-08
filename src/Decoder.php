@@ -433,18 +433,24 @@ class Decoder implements DecoderInterface
                     // If attribute is required
                     if($schemaAttribute->isRequired()) {
                         $this->addAttributeError($key, "Field is required.");
-                    } else {
-                        $schemaAttribute->setValue($object, $value);
+                        continue;
                     }
-                } else {
-                    $validationResult = $schemaAttribute->isValid($value, $this->context);
-                    if($validationResult->isValid()) {
+
+                    // If validateIfEmpty is false
+                    if(!$schemaAttribute->validateIfEmpty()) {
                         $schemaAttribute->setValue($object, $value);
-                    } else {
-                        $errorMessages = $validationResult->getMessages();
-                        foreach($errorMessages as $errorMessage) {
-                            $this->addAttributeError($key, $errorMessage);
-                        }
+                        continue;
+                    }
+                }
+
+                // Validate attribute
+                $validationResult = $schemaAttribute->isValid($value, $this->context);
+                if($validationResult->isValid()) {
+                    $schemaAttribute->setValue($object, $value);
+                } else {
+                    $errorMessages = $validationResult->getMessages();
+                    foreach($errorMessages as $errorMessage) {
+                        $this->addAttributeError($key, $errorMessage);
                     }
                 }
             }
@@ -469,18 +475,23 @@ class Decoder implements DecoderInterface
                     // If relationship is required
                     if($schemaRelationship->isRequired()) {
                         $this->addRelationshipError($key, "Field is required.");
-                    } else {
-                        $this->hydrateToOneRelationship($schemaRelationship, $object, null, $expectedSchemas);
+                        continue;
                     }
+
+                    if(!$schemaRelationship->validateIfEmpty()) {
+                        $this->hydrateToOneRelationship($schemaRelationship, $object, null, $expectedSchemas);
+                        continue;
+                    }
+                }
+
+                // Validate relationships
+                $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
+                if($validationResult->isValid()) {
+                    $this->hydrateToOneRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
                 } else {
-                    $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
-                    if($validationResult->isValid()) {
-                        $this->hydrateToOneRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
-                    } else {
-                        $errorMessages = $validationResult->getMessages();
-                        foreach($errorMessages as $errorMessage) {
-                            $this->addRelationshipError($key, $errorMessage);
-                        }
+                    $errorMessages = $validationResult->getMessages();
+                    foreach($errorMessages as $errorMessage) {
+                        $this->addRelationshipError($key, $errorMessage);
                     }
                 }
 
@@ -501,18 +512,23 @@ class Decoder implements DecoderInterface
                     // If relationship is required
                     if($schemaRelationship->isRequired()) {
                         $this->addRelationshipError($key, "Field is required.");
-                    } else {
-                        $this->hydrateToManyRelationship($schemaRelationship, $object, [], $expectedSchemas);
+                        continue;
                     }
+
+                    if(!$schemaRelationship->validateIfEmpty()) {
+                        $this->hydrateToManyRelationship($schemaRelationship, $object, [], $expectedSchemas);
+                        continue;
+                    }
+                }
+
+                // Validate relationships
+                $validationResult = $schemaRelationship->isValid($relationship, $this->context);
+                if($validationResult->isValid()) {
+                    $this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
                 } else {
-                    $validationResult = $schemaRelationship->isValid($relationship, $this->context);
-                    if($validationResult->isValid()) {
-                        $this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
-                    } else {
-                        $errorMessages = $validationResult->getMessages();
-                        foreach($errorMessages as $errorMessage) {
-                            $this->addRelationshipError($key, $errorMessage);
-                        }
+                    $errorMessages = $validationResult->getMessages();
+                    foreach($errorMessages as $errorMessage) {
+                        $this->addRelationshipError($key, $errorMessage);
                     }
                 }
             }

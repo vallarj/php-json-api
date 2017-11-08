@@ -35,6 +35,9 @@ class Attribute implements AttributeInterface
     /** @var bool Specifies if attribute is required. */
     private $isRequired = false;
 
+    /** @var bool Validate attribute if null. Default is false. */
+    private $validateIfEmpty = false;
+
     private $validatorChain;
 
     /**
@@ -60,6 +63,10 @@ class Attribute implements AttributeInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['validate_if_empty'])) {
+            $this->setValidateIfEmpty($options['validate_if_empty']);
         }
 
         if(isset($options['validators'])) {
@@ -164,6 +171,23 @@ class Attribute implements AttributeInterface
     public function setRequired(bool $required)
     {
         $this->isRequired = $required;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validateIfEmpty(): bool
+    {
+        return $this->validateIfEmpty;
+    }
+
+    /**
+     * Sets the validation if null flag
+     * @param bool $validateIfNull
+     */
+    public function setValidateIfEmpty(bool $validateIfNull)
+    {
+        $this->validateIfEmpty = $validateIfNull;
     }
 
     /**
