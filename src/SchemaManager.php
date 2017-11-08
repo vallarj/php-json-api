@@ -18,22 +18,19 @@
 
 namespace Vallarj\JsonApi;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
-use Vallarj\JsonApi\Factory\SchemaManagerFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-            SchemaManager::class => SchemaManagerFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+use Zend\ServiceManager\AbstractPluginManager;
+
+/**
+ * zend-servicemanager v3-compatible plugin manager implementation for schema elements
+ * @package Vallarj\JsonApi
+ */
+class SchemaManager extends AbstractPluginManager implements SchemaManagerInterface
+{
+    /**
+     * An object type that the created instance must be instanced of
+     * @var string
+     */
+    protected $instanceOf = AbstractResourceSchema::class;
+}
