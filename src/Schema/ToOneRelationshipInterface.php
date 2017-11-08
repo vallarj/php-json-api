@@ -67,4 +67,19 @@ interface ToOneRelationshipInterface
      * @return int
      */
     public function getAccessType(): int;
+
+    /**
+     * Returns ValidationResultInterface that represents the result of the validation
+     * @param $id
+     * @param $type
+     * @param $context
+     * @return ValidationResultInterface
+     */
+    public function isValid($id, $type, $context): ValidationResultInterface;
+
+    /**
+     * Returns true if attribute is required
+     * @return bool
+     */
+    public function isRequired(): bool;
 }

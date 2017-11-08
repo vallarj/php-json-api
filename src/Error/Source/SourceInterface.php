@@ -16,22 +16,20 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Error\Source;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+interface SourceInterface
+{
+    /**
+     * Returns the type of the error source
+     * @return string
+     */
+    public function getType(): string;
+
+    /**
+     * Returns the reference of the error source
+     * @return string
+     */
+    public function getReference(): string;
+}

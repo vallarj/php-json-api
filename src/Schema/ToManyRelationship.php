@@ -21,6 +21,7 @@ namespace Vallarj\JsonApi\Schema;
 
 use Doctrine\Common\Inflector\Inflector;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
+use Vallarj\JsonApi\Exception\InvalidValidatorException;
 
 class ToManyRelationship implements ToManyRelationshipInterface
 {
@@ -30,11 +31,17 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /** @var string Specifies the property name of the mapped relationship */
     private $mappedAs = "";
 
+    /** @var bool Specifies if relationship is required. */
+    private $isRequired = false;
+
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
     private $expectedSchemas = [];
 
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
+
+    /** @var callable   Relationship validator  */
+    private $validator = null;
 
     /**
      * @inheritdoc
@@ -53,6 +60,10 @@ class ToManyRelationship implements ToManyRelationshipInterface
             $this->setAccessType($options['accessType']);
         }
 
+        if(isset($options['required'])) {
+            $this->setRequired($options['required']);
+        }
+
         if(isset($options['expects'])) {
             $expects = $options['expects'];
 
@@ -61,6 +72,16 @@ class ToManyRelationship implements ToManyRelationshipInterface
             }
 
             $this->expectedSchemas = $expects;
+        }
+
+        if(isset($options['validator'])) {
+            $validator = $options['validator'];
+
+            if(!is_callable($validator)) {
+                throw new InvalidSpecificationException("Index 'validator' must be a compatible callable.");
+            }
+
+            $this->setValidator($validator);
         }
     }
 
@@ -127,5 +148,50 @@ class ToManyRelationship implements ToManyRelationshipInterface
     {
         $this->accessType = $accessFlag;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValid(array $relationships, $context): ValidationResultInterface
+    {
+        if(is_callable($this->validator)) {
+            $validator = $this->validator;
+            $result = $validator($relationships, $context);
+
+            if(!$result instanceof ValidationResultInterface) {
+                throw new InvalidValidatorException("Relationship validator must return an instance of ValidationResultInterface");
+            }
+
+            return $result;
+        }
+
+        return new ValidationResult(true);
+    }
+
+    /**
+     * Callable that should return ValidationResultInterface
+     * @param callable $validator
+     */
+    public function setValidator(callable $validator)
+    {
+        $this->validator = $validator;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequired(): bool
+    {
+        return $this->isRequired;
+    }
+
+    /**
+     * Sets the relationship required flag
+     * @param bool $required
+     */
+    public function setRequired(bool $required)
+    {
+        $this->isRequired = $required;
     }
 }

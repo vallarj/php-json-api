@@ -16,22 +16,10 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Exception;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+class InvalidValidatorException extends \Exception
+{
+
+}

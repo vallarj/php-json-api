@@ -67,4 +67,18 @@ interface ToManyRelationshipInterface
      * @return int
      */
     public function getAccessType(): int;
+
+    /**
+     * Returns ValidationResultInterface that represents the result of the validation
+     * @param array $relationships  Array of relationship items, represented by an array with id and type indices
+     * @param $context
+     * @return ValidationResultInterface
+     */
+    public function isValid(array $relationships, $context): ValidationResultInterface;
+
+    /**
+     * Returns true if attribute is required
+     * @return bool
+     */
+    public function isRequired(): bool;
 }

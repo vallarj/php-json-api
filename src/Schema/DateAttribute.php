@@ -19,6 +19,8 @@
 namespace Vallarj\JsonApi\Schema;
 
 
+use Zend\Validator;
+
 class DateAttribute implements AttributeInterface
 {
     /** @var string Specifies the key of the attribute */
@@ -27,6 +29,12 @@ class DateAttribute implements AttributeInterface
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
 
+    /** @var bool Specifies if attribute is required. */
+    private $isRequired = false;
+
+    /** @var Validator\Date Date validator */
+    private $validator;
+
     /**
      * @inheritdoc
      */
@@ -34,6 +42,10 @@ class DateAttribute implements AttributeInterface
     {
         if(isset($options['key'])) {
             $this->key = $options['key'];
+        }
+
+        if(isset($options['required'])) {
+            $this->setRequired($options['required']);
         }
     }
 
@@ -63,9 +75,10 @@ class DateAttribute implements AttributeInterface
      */
     public function setValue($parentObject, $value): void
     {
-        // TODO: Check if DateTime::ATOM format
-        $dateTimeValue = \DateTime::createFromFormat(DATE_ATOM, $value);
-        $parentObject->{'set' . ucfirst($this->key)}($dateTimeValue);
+        if(!is_null($value)) {
+            $value = \DateTime::createFromFormat(DATE_ATOM, $value);
+        }
+        $parentObject->{'set' . ucfirst($this->key)}($value);
     }
 
     /**
@@ -85,5 +98,66 @@ class DateAttribute implements AttributeInterface
     {
         $this->accessType = $accessFlag;
         return $this;
+    }
+
+    /**
+     * Gets the validator of this attribute
+     * @return Validator\Date
+     */
+    private function getValidator(): Validator\Date
+    {
+        if(!$this->validator) {
+            $this->validator = new Validator\Date(["format" => \DateTime::ATOM]);
+            $this->validator->setMessage("Date must follow ISO-8601 format", Validator\Date::INVALID_DATE);
+            $this->validator->setMessage("Date must follow ISO-8601 format", Validator\Date::FALSEFORMAT);
+        }
+
+        return $this->validator;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function filterValue($value)
+    {
+        // Do not perform any pre-processing
+        return $value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isValid($value, $context): ValidationResultInterface
+    {
+        // Workaround for null $value
+        if(is_null($value)) {
+            $value = "";
+        }
+
+        $validator = $this->getValidator();
+        $validationResult = new ValidationResult($validator->isValid($value));
+        $messages = $validator->getMessages();
+        foreach($messages as $message) {
+            $validationResult->addMessage($message);
+        }
+
+        return $validationResult;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isRequired(): bool
+    {
+        return $this->isRequired;
+    }
+
+    /**
+     * Sets the attribute required flag
+     * @param bool $required
+     */
+    public function setRequired(bool $required)
+    {
+        $this->isRequired = $required;
     }
 }

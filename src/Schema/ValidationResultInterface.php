@@ -16,22 +16,20 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Schema;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+interface ValidationResultInterface
+{
+    /**
+     * Returns true if result is valid
+     * @return bool
+     */
+    public function isValid(): bool;
+
+    /**
+     * Returns an array of messages
+     * @return array
+     */
+    public function getMessages(): array;
+}

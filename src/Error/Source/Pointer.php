@@ -16,22 +16,36 @@
  *
  */
 
-namespace Vallarj\JsonApi;
+namespace Vallarj\JsonApi\Error\Source;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+class Pointer implements SourceInterface
+{
+    /** @var string Reference to the error */
+    private $reference;
+
+    /**
+     * Pointer constructor.
+     * @param string $reference
+     */
+    function __construct(string $reference)
+    {
+        $this->reference = $reference;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getType(): string
+    {
+        return "pointer";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getReference(): string
+    {
+        return $this->reference;
+    }
+}

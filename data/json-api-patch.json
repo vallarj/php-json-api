@@ -1,0 +1,109 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "$ref": "#/definitions/resource"
+    }
+  },
+
+  "definitions": {
+    "resource": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "attributes": {
+          "$ref": "#/definitions/attributes"
+        },
+        "relationships": {
+          "$ref": "#/definitions/relationships"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "attributes": {
+      "type": "object",
+      "patternProperties": {
+        "^(?!relationships$|links$|id$|type$)\\w[-\\w_]*$": {
+          "not": {
+            "type": [ "object", "array" ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "relationships": {
+      "type": "object",
+      "patternProperties": {
+        "^(?!id$|type$)\\w[-\\w_]*$": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/relationshipToOne"
+                },
+                {
+                  "$ref": "#/definitions/relationshipToMany"
+                }
+              ]
+            }
+          },
+          "required": ["data"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "relationshipToOne": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/empty"
+        },
+        {
+          "$ref": "#/definitions/linkage"
+        }
+      ]
+    },
+
+    "relationshipToMany": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/linkage"
+      },
+      "uniqueItems": true
+    },
+
+    "empty": {
+      "type": "null"
+    },
+
+    "linkage": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

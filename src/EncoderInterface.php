@@ -18,20 +18,15 @@
 
 namespace Vallarj\JsonApi;
 
-use Vallarj\JsonApi\Factory\DecoderFactory;
-use Vallarj\JsonApi\Factory\EncoderFactory;
 
-return [
-    'service_manager' => [
-        'factories' => [
-            Decoder::class => DecoderFactory::class,
-            Encoder::class => EncoderFactory::class,
-        ],
-    ],
-    'lazy_services' => [
-        'class_map' => [
-            Decoder::class => Decoder::class,
-            Encoder::class => Encoder::class
-        ],
-    ],
-];
+interface EncoderInterface
+{
+    /**
+     * Encodes an object into a JSON API document
+     * @param $resource
+     * @param array $schemaClasses
+     * @param array $includedKeys
+     * @return string
+     */
+    public function encode($resource, array $schemaClasses, array $includedKeys = []): string;
+}
