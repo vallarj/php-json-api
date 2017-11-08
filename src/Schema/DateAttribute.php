@@ -147,6 +147,14 @@ class DateAttribute implements AttributeInterface
     /**
      * @inheritdoc
      */
+    public function validateIfEmpty(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function isRequired(): bool
     {
         return $this->isRequired;

@@ -433,18 +433,24 @@ class Decoder implements DecoderInterface
                     // If attribute is required
                     if($schemaAttribute->isRequired()) {
                         $this->addAttributeError($key, "Field is required.");
-                    } else {
-                        $schemaAttribute->setValue($object, $value);
+                        continue;
                     }
-                } else {
-                    $validationResult = $schemaAttribute->isValid($value, $this->context);
-                    if($validationResult->isValid()) {
+
+                    // If validateIfEmpty is false
+                    if(!$schemaAttribute->validateIfEmpty()) {
                         $schemaAttribute->setValue($object, $value);
-                    } else {
-                        $errorMessages = $validationResult->getMessages();
-                        foreach($errorMessages as $errorMessage) {
-                            $this->addAttributeError($key, $errorMessage);
-                        }
+                        continue;
+                    }
+                }
+
+                // Validate attribute
+                $validationResult = $schemaAttribute->isValid($value, $this->context);
+                if($validationResult->isValid()) {
+                    $schemaAttribute->setValue($object, $value);
+                } else {
+                    $errorMessages = $validationResult->getMessages();
+                    foreach($errorMessages as $errorMessage) {
+                        $this->addAttributeError($key, $errorMessage);
                     }
                 }
             }
