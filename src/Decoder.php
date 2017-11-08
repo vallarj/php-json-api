@@ -213,60 +213,6 @@ class Decoder implements DecoderInterface
     }
 
     /**
-     * Decodes the document into a new object from a compatible schema.
-     * @deprecated
-     * @param string $data
-     * @param array $schemaClasses
-     * @param bool $ignoreMissingFields
-     * @return mixed
-     * @throws InvalidFormatException
-     */
-    public function decode(string $data, array $schemaClasses, bool $ignoreMissingFields = false)
-    {
-        $this->initialize();
-
-        // Decode root object
-        $root = json_decode($data, true);
-
-        if(json_last_error() !== JSON_ERROR_NONE) {
-            throw new InvalidFormatException("Invalid document format.");
-        }
-
-        // Check if data key is set
-        if(!array_key_exists('data', $root)) {
-            throw new InvalidFormatException("Key 'data' is required");
-        }
-
-        $data = $root['data'];
-
-        if(is_null($data)) {
-            // Empty single resource
-            return null;
-        }
-
-        if(!is_array($data)) {
-            throw new InvalidFormatException("Invalid 'data' format");
-        }
-
-        if(array() === $data) {
-            // Empty resource collection
-            return [];
-        }
-
-        // Check if data is a single resource or a resource collection
-        if(array_keys($data) !== range(0, count($data) - 1)) {
-            // Array is possibly a single resource
-            $resource = $this->decodeSingleResource($data, $schemaClasses, $ignoreMissingFields);
-        } else {
-            // Array is sequentially indexed, possibly a resource collection
-            $resource = $this->decodeResourceCollection($data, $schemaClasses, $ignoreMissingFields);
-        }
-
-        // Return null if errors occurred
-        return $this->hasValidationErrors() ? null : $resource;
-    }
-
-    /**
      * Check if last operation has validation errors
      * @return bool
      */
@@ -323,48 +269,6 @@ class Decoder implements DecoderInterface
         }
 
         return $this->createResourceObject($data, $compatibleSchema, $ignoreMissingFields);
-    }
-
-    /**
-     * Decode a resource collection.
-     * @param array $data
-     * @param array $schemaClasses
-     * @param bool $ignoreMissingFields
-     * @return mixed
-     * @throws InvalidFormatException
-     */
-    private function decodeResourceCollection(array $data, array $schemaClasses, bool $ignoreMissingFields)
-    {
-        $collection = [];
-
-        foreach($data as $item) {
-            if(!isset($item['type'])) {
-                throw new InvalidFormatException("Resource 'type' is required");
-            }
-
-            $resourceType = $item['type'];
-            $compatibleSchema = null;
-
-            foreach($schemaClasses as $schemaClass) {
-                $schema = $this->schemaManager->get($schemaClass);
-                if($schema->getResourceType() == $resourceType) {
-                    $compatibleSchema = $schema;
-                    break;
-                }
-            }
-
-            if(!$compatibleSchema) {
-                throw new InvalidFormatException("Invalid 'type' given for this resource");
-            }
-
-            $object = $this->createResourceObject($item, $compatibleSchema, $ignoreMissingFields);
-
-            if($object) {
-                $collection[] = $object;
-            }
-        }
-
-        return $collection;
     }
 
     public function getErrorDocument(): ?ErrorDocument
