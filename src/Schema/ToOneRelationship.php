@@ -33,6 +33,9 @@ class ToOneRelationship implements ToOneRelationshipInterface
     /** @var bool Specifies if relationship is required. */
     private $isRequired = false;
 
+    /** @var bool Validate attribute if null. Default is false. */
+    private $validateIfEmpty = false;
+
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
     private $expectedSchemas = [];
 
@@ -61,6 +64,10 @@ class ToOneRelationship implements ToOneRelationshipInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['validate_if_empty'])) {
+            $this->setValidateIfEmpty($options['validate_if_empty']);
         }
 
         if(isset($options['expects'])) {
@@ -169,6 +176,23 @@ class ToOneRelationship implements ToOneRelationshipInterface
     public function setValidator(callable $validator)
     {
         $this->validator = $validator;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validateIfEmpty(): bool
+    {
+        return $this->validateIfEmpty;
+    }
+
+    /**
+     * Sets the validation if null flag
+     * @param bool $validateIfEmpty
+     */
+    public function setValidateIfEmpty(bool $validateIfEmpty)
+    {
+        $this->validateIfEmpty = $validateIfEmpty;
     }
 
     /**

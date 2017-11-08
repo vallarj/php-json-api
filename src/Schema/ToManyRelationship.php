@@ -34,6 +34,9 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /** @var bool Specifies if relationship is required. */
     private $isRequired = false;
 
+    /** @var bool Validate attribute if null. Default is false. */
+    private $validateIfEmpty = false;
+
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
     private $expectedSchemas = [];
 
@@ -62,6 +65,10 @@ class ToManyRelationship implements ToManyRelationshipInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['validate_if_empty'])) {
+            $this->setValidateIfEmpty($options['validate_if_empty']);
         }
 
         if(isset($options['expects'])) {
@@ -176,6 +183,23 @@ class ToManyRelationship implements ToManyRelationshipInterface
     public function setValidator(callable $validator)
     {
         $this->validator = $validator;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validateIfEmpty(): bool
+    {
+        return $this->validateIfEmpty;
+    }
+
+    /**
+     * Sets the validation if empty flag
+     * @param bool $validateIfEmpty
+     */
+    public function setValidateIfEmpty(bool $validateIfEmpty)
+    {
+        $this->validateIfEmpty = $validateIfEmpty;
     }
 
     /**
