@@ -206,11 +206,7 @@ class Attribute implements AttributeInterface
                 $validatorClass = $validator['name'];
                 $validatorOptions = $validator['options'] ?? [];
 
-                $validator = new $validatorClass();
-
-                if($validator instanceof AbstractValidator) {
-                    $validator->setOptions($validatorOptions);
-                }
+                $validator = new $validatorClass($validatorOptions);
             } else {
                 throw new InvalidSpecificationException("Validator must be an instance of ValidatorInterface or " .
                     "a compatible array.");
