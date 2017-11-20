@@ -74,7 +74,6 @@ class Decoder implements DecoderInterface
     public function decodePostResource(
         string $data,
         array $schemaClasses,
-        array $validators = [],
         bool $allowEphemeralId = false
     ) {
         $this->initialize();
@@ -110,8 +109,7 @@ class Decoder implements DecoderInterface
      */
     public function decodePatchResource(
         string $data,
-        array $schemaClasses,
-        array $validators = []
+        array $schemaClasses
     ) {
         $this->initialize();
 
