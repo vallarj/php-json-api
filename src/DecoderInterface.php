@@ -42,12 +42,14 @@ interface DecoderInterface
      * Decodes a PATCH document into a new object from a compatible schema
      * @param string $data
      * @param array $schemaClasses
+     * @param mixed $expectedId     If not null, decoder will check if provided ID matches the expected ID
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodePatchResource(
         string $data,
-        array $schemaClasses
+        array $schemaClasses,
+        $expectedId = null
     );
 
     /**
