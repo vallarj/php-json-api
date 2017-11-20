@@ -111,7 +111,8 @@ class Decoder implements DecoderInterface
     public function decodePatchResource(
         string $data,
         array $schemaClasses,
-        $expectedId = null
+        $expectedId = null,
+        bool $denyMissingFields = false
     ) {
         $this->initialize();
 
@@ -133,8 +134,8 @@ class Decoder implements DecoderInterface
         // Set context ID
         $this->context['id'] = $data->id;
 
-        // Ignore missing fields
-        $resource = $this->decodeSingleResource($data, $schemaClasses, true);
+        // Decode single resource
+        $resource = $this->decodeSingleResource($data, $schemaClasses, !$denyMissingFields);
 
         // Return null if errors occurred
         return $this->hasValidationErrors() ? null : $resource;

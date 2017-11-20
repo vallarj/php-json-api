@@ -43,13 +43,15 @@ interface DecoderInterface
      * @param string $data
      * @param array $schemaClasses
      * @param mixed $expectedId     If not null, decoder will check if provided ID matches the expected ID
+     * @param bool $denyMissingFields   Invalidates decode operation if required fields are missing. Defaults to false.
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodePatchResource(
         string $data,
         array $schemaClasses,
-        $expectedId = null
+        $expectedId = null,
+        bool $denyMissingFields = false
     );
 
     /**
