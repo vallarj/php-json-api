@@ -561,10 +561,14 @@ class Decoder implements DecoderInterface
             throw new InvalidFormatException("Invalid to-one relationship format.");
         }
 
-        $this->context['relationships'][$key] = [
-            'type' => $relationshipData->type,
-            'id' => $relationshipData->id
-        ];
+        if(!is_null($relationshipData)) {
+            $this->context['relationships'][$key] = [
+                'type' => $relationshipData->type,
+                'id' => $relationshipData->id
+            ];
+        } else {
+            $this->context['relationships'][$key] = null;
+        }
     }
 
     private function setToManyRelationshipContext($key, $relationship): void
