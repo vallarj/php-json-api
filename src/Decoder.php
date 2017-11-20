@@ -24,6 +24,7 @@ use Vallarj\JsonApi\Error\ErrorDocument;
 use Vallarj\JsonApi\Error\Source\AttributePointer;
 use Vallarj\JsonApi\Error\Source\RelationshipPointer;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
+use Vallarj\JsonApi\Exception\InvalidIdentifierException;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidator;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidatorInterface;
 use Vallarj\JsonApi\Schema\AbstractResourceSchema;
@@ -74,7 +75,6 @@ class Decoder implements DecoderInterface
     public function decodePostResource(
         string $data,
         array $schemaClasses,
-        array $validators = [],
         bool $allowEphemeralId = false
     ) {
         $this->initialize();
@@ -111,7 +111,8 @@ class Decoder implements DecoderInterface
     public function decodePatchResource(
         string $data,
         array $schemaClasses,
-        array $validators = []
+        $expectedId = null,
+        bool $denyMissingFields = false
     ) {
         $this->initialize();
 
@@ -125,11 +126,16 @@ class Decoder implements DecoderInterface
 
         $data = $root->data;
 
+        // Check ID if expected ID was provided
+        if(!is_null($expectedId) && $data->id !== $expectedId) {
+            throw new InvalidIdentifierException("Resource ID must match ID provided in endpoint path.");
+        }
+
         // Set context ID
         $this->context['id'] = $data->id;
 
-        // Ignore missing fields
-        $resource = $this->decodeSingleResource($data, $schemaClasses, true);
+        // Decode single resource
+        $resource = $this->decodeSingleResource($data, $schemaClasses, !$denyMissingFields);
 
         // Return null if errors occurred
         return $this->hasValidationErrors() ? null : $resource;

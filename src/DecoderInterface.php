@@ -28,7 +28,6 @@ interface DecoderInterface
      * Decodes a POST document into a new object from a compatible schema
      * @param string $data
      * @param array $schemaClasses
-     * @param array $validators
      * @param bool $allowEphemeralId
      * @return mixed
      * @throws InvalidFormatException
@@ -36,7 +35,6 @@ interface DecoderInterface
     public function decodePostResource(
         string $data,
         array $schemaClasses,
-        array $validators = [],
         bool $allowEphemeralId = false
     );
 
@@ -44,14 +42,16 @@ interface DecoderInterface
      * Decodes a PATCH document into a new object from a compatible schema
      * @param string $data
      * @param array $schemaClasses
-     * @param array $validators
+     * @param mixed $expectedId     If not null, decoder will check if provided ID matches the expected ID
+     * @param bool $denyMissingFields   Invalidates decode operation if required fields are missing. Defaults to false.
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodePatchResource(
         string $data,
         array $schemaClasses,
-        array $validators = []
+        $expectedId = null,
+        bool $denyMissingFields = false
     );
 
     /**
