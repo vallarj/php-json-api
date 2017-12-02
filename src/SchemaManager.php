@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi;
 
 
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 
 /**
@@ -32,5 +32,5 @@ class SchemaManager extends AbstractPluginManager implements SchemaManagerInterf
      * An object type that the created instance must be instanced of
      * @var string
      */
-    protected $instanceOf = AbstractResourceSchema::class;
+    protected $instanceOf = ResourceSchemaInterface::class;
 }

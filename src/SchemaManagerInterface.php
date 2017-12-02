@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi;
 
 
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 
 interface SchemaManagerInterface
 {
@@ -27,7 +27,7 @@ interface SchemaManagerInterface
      * Retrieve a resource schema from the manager by name
      *
      * @param $name
-     * @return AbstractResourceSchema
+     * @return ResourceSchemaInterface
      */
     public function get($name);
 }
