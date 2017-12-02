@@ -20,8 +20,8 @@ namespace Vallarj\JsonApi;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
@@ -138,7 +138,7 @@ class Encoder implements EncoderInterface
         }
     }
 
-    private function extractResource($object, AbstractResourceSchema $schema): array
+    private function extractResource($object, ResourceSchemaInterface $schema): array
     {
         // Extract attributes
         $attributes = [];
