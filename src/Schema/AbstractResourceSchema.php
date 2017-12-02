@@ -106,6 +106,9 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
                     "compatible with schema identifier builder specifications");
             }
         }
+
+        // Set identifier
+        $this->identifier = $identifier;
     }
 
     /**
