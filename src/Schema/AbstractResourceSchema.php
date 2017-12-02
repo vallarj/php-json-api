@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-abstract class AbstractResourceSchema
+abstract class AbstractResourceSchema implements ResourceSchemaInterface
 {
     /** @var string Specifies the resource type */
     protected $resourceType;
@@ -40,29 +40,23 @@ abstract class AbstractResourceSchema
     private $relationships = [];
 
     /**
-     * Must return the resource type used by this schema
-     *
-     * @return string
+     * @inheritdoc
      */
-    public function getResourceType(): ?string
+    final public function getResourceType(): ?string
     {
         return $this->resourceType;
     }
 
     /**
-     * Must return the FQCN of the object to map the JSON API resource
-     *
-     * @return string
+     * @inheritdoc
      */
-    public function getMappingClass(): ?string
+    final public function getMappingClass(): ?string
     {
         return $this->mappingClass;
     }
 
     /**
-     * Returns the identifier specifications of the schema
-     *
-     * @return IdentifierInterface
+     * @inheritdoc
      */
     final public function getIdentifier(): IdentifierInterface
     {
@@ -115,9 +109,7 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Returns the SchemaAttributes of this schema
-     *
-     * @return AttributeInterface[]
+     * @inheritdoc
      */
     final public function getAttributes(): array
     {
@@ -170,8 +162,7 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Returns the relationships of this schema
-     * @return array
+     * @inheritdoc
      */
     final public function getRelationships(): array
     {

@@ -27,8 +27,8 @@ use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Exception\InvalidIdentifierException;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidator;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidatorInterface;
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
@@ -317,7 +317,7 @@ class Decoder implements DecoderInterface
         $this->errors[] = $error;
     }
 
-    private function createResourceIdentifier($data, AbstractResourceSchema $schema)
+    private function createResourceIdentifier($data, ResourceSchemaInterface $schema)
     {
         $resourceType = $data->type;
         $resourceId = $data->id;
@@ -347,12 +347,12 @@ class Decoder implements DecoderInterface
 
     /**
      * @param $data
-     * @param AbstractResourceSchema $schema
+     * @param ResourceSchemaInterface $schema
      * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function createResourceObject($data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
+    private function createResourceObject($data, ResourceSchemaInterface $schema, bool $ignoreMissingFields)
     {
         $resourceType = $data->type;
         $resourceId = $data->id ?? null;
@@ -659,7 +659,7 @@ class Decoder implements DecoderInterface
         return $modifiedCount > 0;
     }
 
-    private function resolveRelationshipObject(AbstractResourceSchema $schema, $id)
+    private function resolveRelationshipObject(ResourceSchemaInterface $schema, $id)
     {
         $mappingClass = $schema->getMappingClass();
 
