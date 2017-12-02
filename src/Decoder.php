@@ -339,12 +339,19 @@ class Decoder implements DecoderInterface
         $object = new $resourceClass;
 
         // Set the resource ID
-        $schema->setResourceId($object, $resourceId);
+        $schema->getIdentifier()->setResourceId($object, $resourceId);
 
         // Return the object
         return $object;
     }
 
+    /**
+     * @param $data
+     * @param AbstractResourceSchema $schema
+     * @param bool $ignoreMissingFields
+     * @return mixed
+     * @throws InvalidFormatException
+     */
     private function createResourceObject($data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
     {
         $resourceType = $data->type;
@@ -362,7 +369,7 @@ class Decoder implements DecoderInterface
         $object = new $resourceClass;
 
         // Set the resource ID
-        $schema->setResourceId($object, $resourceId);
+        $schema->getIdentifier()->setResourceId($object, $resourceId);
 
         // Schema attributes
         $schemaAttributes = $schema->getAttributes();
@@ -554,6 +561,11 @@ class Decoder implements DecoderInterface
         return $object;
     }
 
+    /**
+     * @param $key
+     * @param $relationship
+     * @throws InvalidFormatException
+     */
     private function setToOneRelationshipContext($key, $relationship): void
     {
         $relationshipData = $relationship->data;
@@ -571,6 +583,11 @@ class Decoder implements DecoderInterface
         }
     }
 
+    /**
+     * @param $key
+     * @param $relationship
+     * @throws InvalidFormatException
+     */
     private function setToManyRelationshipContext($key, $relationship): void
     {
         $relationshipData = $relationship->data;
@@ -648,7 +665,7 @@ class Decoder implements DecoderInterface
 
         if(!isset($this->objectCache[$mappingClass][$id])) {
             $object = new $mappingClass;
-            $schema->setResourceId($object, $id);
+            $schema->getIdentifier()->setResourceId($object, $id);
             $this->objectCache[$mappingClass][$id] = $object;
         }
 
