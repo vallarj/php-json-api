@@ -183,7 +183,7 @@ class Encoder implements EncoderInterface
         // Build the return data
         $data = [
             'type' => $schema->getResourceType(),
-            'id' => (string)$schema->getResourceId($object),
+            'id' => (string)$schema->getIdentifier()->getResourceId($object),
         ];
 
         // Include attributes if not empty
@@ -219,7 +219,7 @@ class Encoder implements EncoderInterface
         $resourceType = $schema->getResourceType();
 
         // Get the ID
-        $resourceId = $schema->getResourceId($mappedObject);
+        $resourceId = $schema->getIdentifier()->getResourceId($mappedObject);
 
         // Push key to the walker array
         array_push($this->includedWalker, $key);
