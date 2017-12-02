@@ -27,8 +27,8 @@ use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Exception\InvalidIdentifierException;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidator;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidatorInterface;
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
@@ -317,7 +317,7 @@ class Decoder implements DecoderInterface
         $this->errors[] = $error;
     }
 
-    private function createResourceIdentifier($data, AbstractResourceSchema $schema)
+    private function createResourceIdentifier($data, ResourceSchemaInterface $schema)
     {
         $resourceType = $data->type;
         $resourceId = $data->id;
@@ -339,13 +339,20 @@ class Decoder implements DecoderInterface
         $object = new $resourceClass;
 
         // Set the resource ID
-        $schema->setResourceId($object, $resourceId);
+        $schema->getIdentifier()->setResourceId($object, $resourceId);
 
         // Return the object
         return $object;
     }
 
-    private function createResourceObject($data, AbstractResourceSchema $schema, bool $ignoreMissingFields)
+    /**
+     * @param $data
+     * @param ResourceSchemaInterface $schema
+     * @param bool $ignoreMissingFields
+     * @return mixed
+     * @throws InvalidFormatException
+     */
+    private function createResourceObject($data, ResourceSchemaInterface $schema, bool $ignoreMissingFields)
     {
         $resourceType = $data->type;
         $resourceId = $data->id ?? null;
@@ -362,7 +369,7 @@ class Decoder implements DecoderInterface
         $object = new $resourceClass;
 
         // Set the resource ID
-        $schema->setResourceId($object, $resourceId);
+        $schema->getIdentifier()->setResourceId($object, $resourceId);
 
         // Schema attributes
         $schemaAttributes = $schema->getAttributes();
@@ -554,6 +561,11 @@ class Decoder implements DecoderInterface
         return $object;
     }
 
+    /**
+     * @param $key
+     * @param $relationship
+     * @throws InvalidFormatException
+     */
     private function setToOneRelationshipContext($key, $relationship): void
     {
         $relationshipData = $relationship->data;
@@ -571,6 +583,11 @@ class Decoder implements DecoderInterface
         }
     }
 
+    /**
+     * @param $key
+     * @param $relationship
+     * @throws InvalidFormatException
+     */
     private function setToManyRelationshipContext($key, $relationship): void
     {
         $relationshipData = $relationship->data;
@@ -642,13 +659,13 @@ class Decoder implements DecoderInterface
         return $modifiedCount > 0;
     }
 
-    private function resolveRelationshipObject(AbstractResourceSchema $schema, $id)
+    private function resolveRelationshipObject(ResourceSchemaInterface $schema, $id)
     {
         $mappingClass = $schema->getMappingClass();
 
         if(!isset($this->objectCache[$mappingClass][$id])) {
             $object = new $mappingClass;
-            $schema->setResourceId($object, $id);
+            $schema->getIdentifier()->setResourceId($object, $id);
             $this->objectCache[$mappingClass][$id] = $object;
         }
 

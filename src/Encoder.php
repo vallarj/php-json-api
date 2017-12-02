@@ -20,8 +20,8 @@ namespace Vallarj\JsonApi;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\AbstractResourceSchema;
 use Vallarj\JsonApi\Schema\AttributeInterface;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
@@ -138,7 +138,7 @@ class Encoder implements EncoderInterface
         }
     }
 
-    private function extractResource($object, AbstractResourceSchema $schema): array
+    private function extractResource($object, ResourceSchemaInterface $schema): array
     {
         // Extract attributes
         $attributes = [];
@@ -183,7 +183,7 @@ class Encoder implements EncoderInterface
         // Build the return data
         $data = [
             'type' => $schema->getResourceType(),
-            'id' => (string)$schema->getResourceId($object),
+            'id' => (string)$schema->getIdentifier()->getResourceId($object),
         ];
 
         // Include attributes if not empty
@@ -219,7 +219,7 @@ class Encoder implements EncoderInterface
         $resourceType = $schema->getResourceType();
 
         // Get the ID
-        $resourceId = $schema->getResourceId($mappedObject);
+        $resourceId = $schema->getIdentifier()->getResourceId($mappedObject);
 
         // Push key to the walker array
         array_push($this->includedWalker, $key);

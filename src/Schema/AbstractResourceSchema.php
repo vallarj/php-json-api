@@ -22,7 +22,7 @@ namespace Vallarj\JsonApi\Schema;
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
 
-abstract class AbstractResourceSchema
+abstract class AbstractResourceSchema implements ResourceSchemaInterface
 {
     /** @var string Specifies the resource type */
     protected $resourceType;
@@ -30,8 +30,8 @@ abstract class AbstractResourceSchema
     /** @var string Specifies the FQCN of the object to map the JSON API resource */
     protected $mappingClass;
 
-    /** @var string The property name of the object's identifier */
-    protected $identifier = "id";
+    /** @var IdentifierInterface The identifier of this schema */
+    private $identifier;
 
     /** @var Attribute[] Attributes of this schema */
     private $attributes = [];
@@ -40,55 +40,76 @@ abstract class AbstractResourceSchema
     private $relationships = [];
 
     /**
-     * Must return the resource type used by this schema
-     * @return string
+     * @inheritdoc
      */
-    public function getResourceType(): ?string
+    final public function getResourceType(): ?string
     {
         return $this->resourceType;
     }
 
     /**
-     * Must return the FQCN of the object to map the JSON API resource
-     * @return string
+     * @inheritdoc
      */
-    public function getMappingClass(): ?string
+    final public function getMappingClass(): ?string
     {
         return $this->mappingClass;
     }
 
     /**
-     * Must return the identifier property name of the object to bind
-     * @return string
+     * @inheritdoc
      */
-    public function getIdentifierPropertyName(): string
+    final public function getIdentifier(): IdentifierInterface
     {
+        if(is_null($this->identifier)) {
+            $this->identifier = new Identifier();
+        }
+
         return $this->identifier;
     }
 
     /**
-     * Extracts the resource ID based on identifier property name
-     * @param $object
-     * @return mixed
+     * Sets the Identifier
+     *
+     * @param IdentifierInterface| array $identifier
+     * @throws InvalidArgumentException if argument is incompatible
+     * @throws InvalidSpecificationException if type is missing
      */
-    final public function getResourceId($object)
+    final public function setIdentifier($identifier)
     {
-        return $object->{'get' . ucfirst($this->getIdentifierPropertyName())}();
+        if(!$identifier instanceof IdentifierInterface) {
+            if(is_array($identifier)) {
+                if(!isset($identifier['type']) || !is_string($identifier['type'])) {
+                    throw new InvalidSpecificationException("Index 'type' is required");
+                }
+
+                $type = $identifier['type'];
+                $options = $identifier['options'] ?? null;
+
+                if(!is_subclass_of($type, IdentifierInterface::class)) {
+                    throw new InvalidSpecificationException("Index 'type' must be a class that implements " .
+                        "IdentifierInterface");
+                }
+
+                /** @var IdentifierInterface $identifier */
+                $identifier = new $type;
+
+                if($options) {
+                    if(!is_array($options)) {
+                        throw new InvalidSpecificationException("Index 'options' must be a compatible array");
+                    }
+
+                    $identifier->setOptions($options);
+                }
+            } else {
+                // Must be a AttributeInterface instance or a compatible array
+                throw new InvalidArgumentException("Argument must be an instance of IdentifierInterface or an array " .
+                    "compatible with schema identifier builder specifications");
+            }
+        }
     }
 
     /**
-     * Sets the resource ID based on identifier property name
-     * @param $object
-     * @param mixed $id
-     */
-    final public function setResourceId($object, $id): void
-    {
-        $object->{'set' . ucfirst($this->getIdentifierPropertyName())}($id);
-    }
-
-    /**
-     * Returns the SchemaAttributes of this schema
-     * @return AttributeInterface[]
+     * @inheritdoc
      */
     final public function getAttributes(): array
     {
@@ -105,7 +126,7 @@ abstract class AbstractResourceSchema
      */
     final public function addAttribute($attribute): void
     {
-        if(!$attribute instanceof Attribute) {
+        if(!$attribute instanceof AttributeInterface) {
             if(is_array($attribute)) {
                 if(!isset($attribute['type']) || !is_string($attribute['type'])) {
                     throw new InvalidSpecificationException("Index 'type' is required");
@@ -141,8 +162,7 @@ abstract class AbstractResourceSchema
     }
 
     /**
-     * Returns the relationships of this schema
-     * @return array
+     * @inheritdoc
      */
     final public function getRelationships(): array
     {
