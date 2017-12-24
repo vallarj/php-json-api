@@ -102,7 +102,7 @@ class Encoder implements EncoderInterface
 
     private function encodeSingleResource($resource, array $schemaClasses): void
     {
-        $resourceClass = get_class($resource);
+        $resourceClass = is_null($resource) ? null : get_class($resource);
 
         foreach($schemaClasses as $schemaClass) {
             $schema = $this->schemaManager->get($schemaClass);
@@ -119,7 +119,7 @@ class Encoder implements EncoderInterface
     private function encodeResourceCollection(array $resources, array $schemaClasses): void
     {
         foreach($resources as $resource) {
-            $resourceClass = get_class($resource);
+            $resourceClass = is_null($resource) ? null : get_class($resource);
             $compatibleSchema = null;
 
             foreach($schemaClasses as $schemaClass) {
@@ -204,7 +204,8 @@ class Encoder implements EncoderInterface
         $schema = null;
         foreach($expectedSchemas as $schemaClass) {
             $testSchema = $this->schemaManager->get($schemaClass);
-            if($testSchema->getMappingClass() == get_class($mappedObject)) {
+            $mappedObjectClass = is_null($mappedObject) ? null : get_class($mappedObject);
+            if($testSchema->getMappingClass() == $mappedObjectClass) {
                 // Extract resource data
                 $schema = $testSchema;
                 break;
