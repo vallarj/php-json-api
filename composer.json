@@ -15,8 +15,7 @@
         "doctrine/inflector": "^1.2",
         "zendframework/zend-servicemanager": "^3.3",
         "zendframework/zend-validator": "^2.10",
-        "justinrainbow/json-schema": "^5.2",
-        "ocramius/proxy-manager": "^2.1"
+        "justinrainbow/json-schema": "^5.2"
     },
     "autoload": {
         "psr-4": {
