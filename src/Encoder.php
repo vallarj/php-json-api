@@ -179,6 +179,13 @@ class Encoder implements EncoderInterface
             }
         }
 
+        // Extract meta
+        $meta = [];
+        $schemaMeta = $schema->getMeta();
+        foreach($schemaMeta as $metaItem) {
+            $key = $metaItem->getKey();
+            $meta[$key] = $metaItem->getValue($object);
+        }
 
         // Build the return data
         $data = [
@@ -194,6 +201,11 @@ class Encoder implements EncoderInterface
         // Include relationships if not empty
         if(!empty($relationships)) {
             $data['relationships'] = $relationships;
+        }
+
+        // Include meta if not empty
+        if(!empty($meta)) {
+            $data['meta'] = $meta;
         }
 
         return $data;
