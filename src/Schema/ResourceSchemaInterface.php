@@ -45,4 +45,11 @@ interface ResourceSchemaInterface
      * @return array
      */
     public function getRelationships(): array;
+
+    /**
+     * Returns the meta items of this schema
+     *
+     * @return MetaInterface[]
+     */
+    public function getMeta(): array;
 }

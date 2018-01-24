@@ -33,13 +33,13 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
     /** @var IdentifierInterface The identifier of this schema */
     private $identifier;
 
-    /** @var Attribute[] Attributes of this schema */
+    /** @var AttributeInterface[] Attributes of this schema */
     private $attributes = [];
 
     /** @var array Relationships of this schema */
     private $relationships = [];
 
-
+    /** @var MetaInterface[] Meta items of this schema  */
     private $meta = [];
 
     /**
@@ -125,7 +125,7 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
     /**
      * Add an Attribute
      * If an attribute in the array with the same key exists, it will be replaced.
-     * @param $attribute AttributeInterface|array $attribute   If argument is an array, it must be compatible
+     * @param AttributeInterface|array $attribute   If argument is an array, it must be compatible
      *                                                      with Attribute specifications array.
      * @throws InvalidArgumentException
      * @throws InvalidSpecificationException
@@ -221,5 +221,59 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
 
         // Add to the relationships array with the key as index
         $this->relationships[$relationship->getKey()] = $relationship;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    final public function getMeta(): array
+    {
+        return $this->meta;
+    }
+
+    /**
+     * Add a Meta
+     * If a meta in the array with the same key exists, it will be replaced.
+     *
+     * @param $meta MetaInterface|array     If argument is an array, it must be compatible
+     *                                          with Meta specifications array
+     * @throws InvalidArgumentException
+     * @throws InvalidSpecificationException
+     */
+    final public function addMeta($meta): void
+    {
+        if(!$meta instanceof MetaInterface) {
+            if(is_array($meta)) {
+                if(!isset($meta['type']) || !is_string($meta['type'])) {
+                    throw new InvalidSpecificationException("Index 'type' is required");
+                }
+
+                $type = $meta['type'];
+                $options = $meta['options'] ?? null;
+
+                if(is_subclass_of($type, MetaInterface::class)) {
+                    throw new InvalidSpecificationException("Index 'type' must be a class that implements " .
+                        "MetaInterface");
+                }
+
+                /** @var MetaInterface $meta */
+                $meta = new $type;
+
+                if($options) {
+                    if(!is_array($options)) {
+                        throw new InvalidSpecificationException("Index 'options' must be a compatible array");
+                    }
+
+                    $meta->setOptions($options);
+                }
+            }
+        } else {
+            // Must be a MetaInterface instance or a compatible array
+            throw new InvalidArgumentException("Argument must be an instance of MetaInterface or an array " .
+                "compatible with schema meta builder specifiactions");
+        }
+
+        // Add to the meta array with the key as index
+        $this->meta[$meta->getKey()] = $meta;
     }
 }
