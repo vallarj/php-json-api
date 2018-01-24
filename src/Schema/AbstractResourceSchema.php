@@ -39,6 +39,9 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
     /** @var array Relationships of this schema */
     private $relationships = [];
 
+
+    private $meta = [];
+
     /**
      * @inheritdoc
      */
@@ -120,7 +123,7 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
     }
 
     /**
-     * Add a Attribute
+     * Add an Attribute
      * If an attribute in the array with the same key exists, it will be replaced.
      * @param $attribute AttributeInterface|array $attribute   If argument is an array, it must be compatible
      *                                                      with Attribute specifications array.
