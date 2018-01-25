@@ -251,7 +251,7 @@ abstract class AbstractResourceSchema implements ResourceSchemaInterface
                 $type = $meta['type'];
                 $options = $meta['options'] ?? null;
 
-                if(is_subclass_of($type, MetaInterface::class)) {
+                if(!is_subclass_of($type, MetaInterface::class)) {
                     throw new InvalidSpecificationException("Index 'type' must be a class that implements " .
                         "MetaInterface");
                 }
