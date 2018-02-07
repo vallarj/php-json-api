@@ -513,7 +513,9 @@ class Decoder implements DecoderInterface
                 // Validate relationships
                 $validationResult = $schemaRelationship->isValid($relationship['id'], $relationship['type'], $this->context);
                 if($validationResult->isValid()) {
-                    $this->hydrateToOneRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
+                    if(!$this->hydrateToOneRelationship($schemaRelationship, $object, $relationship, $expectedSchemas)) {
+                        $this->addRelationshipError($key, "Cannot resolve resource type '{$relationship['type']}'");
+                    };
                 } else {
                     $errorMessages = $validationResult->getMessages();
                     foreach($errorMessages as $errorMessage) {
@@ -550,7 +552,9 @@ class Decoder implements DecoderInterface
                 // Validate relationships
                 $validationResult = $schemaRelationship->isValid($relationship, $this->context);
                 if($validationResult->isValid()) {
-                    $this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas);
+                    if(!$this->hydrateToManyRelationship($schemaRelationship, $object, $relationship, $expectedSchemas)) {
+                        $this->addRelationshipError($key, "Unexpected resource type.'");
+                    };
                 } else {
                     $errorMessages = $validationResult->getMessages();
                     foreach($errorMessages as $errorMessage) {
@@ -643,6 +647,7 @@ class Decoder implements DecoderInterface
         if(empty($relationship)) {
             // Clear collection
             $schemaRelationship->clearCollection($parentObject);
+            return true;
         }
 
         $modifiedCount = 0;
