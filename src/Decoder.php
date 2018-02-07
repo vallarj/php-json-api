@@ -369,7 +369,9 @@ class Decoder implements DecoderInterface
         $object = new $resourceClass;
 
         // Set the resource ID
-        $schema->getIdentifier()->setResourceId($object, $resourceId);
+        if($resourceId) {
+            $schema->getIdentifier()->setResourceId($object, $resourceId);
+        }
 
         // Schema attributes
         $schemaAttributes = $schema->getAttributes();
