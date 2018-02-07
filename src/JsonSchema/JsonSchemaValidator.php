@@ -76,6 +76,7 @@ class JsonSchemaValidator implements JsonSchemaValidatorInterface
                     '$ref' => '#/definitions/resource',
                 ],
             ],
+            'required' => ['data'],
             'definitions' => (object) [
                 'resource' => (object) [
                     'type' => 'object',
