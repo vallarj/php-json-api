@@ -27,7 +27,6 @@ use Vallarj\JsonApi\Exception\InvalidFormatException;
 use Vallarj\JsonApi\Exception\InvalidIdentifierException;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidator;
 use Vallarj\JsonApi\JsonSchema\JsonSchemaValidatorInterface;
-use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
@@ -390,7 +389,7 @@ class Decoder implements DecoderInterface
 
         // Perform attribute pre-processing then add to current context array
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+            if($schemaAttribute->isWritable()) {
                 $key = $schemaAttribute->getKey();
 
                 if(property_exists($attributes, $key)) {
@@ -418,7 +417,7 @@ class Decoder implements DecoderInterface
         // Add relationships to current context array
         foreach($schemaRelationships as $schemaRelationship) {
             if($schemaRelationship instanceof ToOneRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
+                ($schemaRelationship->isWritable())) {
                 $key = $schemaRelationship->getKey();
 
                 if(property_exists($relationships, $key)) {
@@ -428,7 +427,7 @@ class Decoder implements DecoderInterface
                     $this->context['relationships'][$key] = null;
                 }
             } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
+                ($schemaRelationship->isWritable())) {
                 $key = $schemaRelationship->getKey();
 
                 if(property_exists($relationships, $key)) {
@@ -443,7 +442,7 @@ class Decoder implements DecoderInterface
         // SECOND PASS: Perform validation and hydrate object using context values
         // Attributes
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+            if($schemaAttribute->isWritable()) {
                 $key = $schemaAttribute->getKey();
 
                 $attributeContext = $this->context['attributes'];
@@ -485,7 +484,7 @@ class Decoder implements DecoderInterface
         // Relationships
         foreach($schemaRelationships as $schemaRelationship) {
             if($schemaRelationship instanceof ToOneRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_WRITE)) {
+                ($schemaRelationship->isWritable())) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
@@ -524,7 +523,7 @@ class Decoder implements DecoderInterface
                 }
 
             } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_WRITE)) {
+                ($schemaRelationship->isWritable())) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $key = $schemaRelationship->getKey();
 
