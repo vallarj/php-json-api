@@ -112,7 +112,7 @@ class DateAttribute implements AttributeInterface
      * Sets the readable flag of this attribute
      * @param bool $isReadable
      */
-    public function setReadable(bool $isReadable)
+    private function setReadable(bool $isReadable)
     {
         $this->isReadable = $isReadable;
     }
@@ -121,7 +121,7 @@ class DateAttribute implements AttributeInterface
      * Sets the writable flag of this attribute
      * @param bool $isWritable
      */
-    public function setWritable(bool $isWritable)
+    private function setWritable(bool $isWritable)
     {
         $this->isWritable = $isWritable;
     }
