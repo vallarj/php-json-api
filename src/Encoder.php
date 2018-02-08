@@ -144,7 +144,8 @@ class Encoder implements EncoderInterface
         $attributes = [];
         $schemaAttributes = $schema->getAttributes();
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_READ) {
+            //if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_READ) {
+            if($schemaAttribute->isReadable()) {
                 $key = $schemaAttribute->getKey();
                 $attributes[$key] = $schemaAttribute->getValue($object);
             }

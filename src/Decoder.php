@@ -390,7 +390,7 @@ class Decoder implements DecoderInterface
 
         // Perform attribute pre-processing then add to current context array
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+            if($schemaAttribute->isWritable()) {
                 $key = $schemaAttribute->getKey();
 
                 if(property_exists($attributes, $key)) {
@@ -443,7 +443,7 @@ class Decoder implements DecoderInterface
         // SECOND PASS: Perform validation and hydrate object using context values
         // Attributes
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_WRITE) {
+            if($schemaAttribute->isWritable()) {
                 $key = $schemaAttribute->getKey();
 
                 $attributeContext = $this->context['attributes'];
