@@ -32,6 +32,12 @@ class DateAttribute implements AttributeInterface
     /** @var bool Specifies if attribute is required. */
     private $isRequired = false;
 
+    /** @var bool Specifies if attribute is readable. */
+    private $isReadable = true;
+
+    /** @var bool Specifies if attribute is writable. */
+    private $isWritable = true;
+
     /** @var Validator\Date Date validator */
     private $validator;
 
@@ -46,6 +52,14 @@ class DateAttribute implements AttributeInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['isReadable'])) {
+            $this->setReadable($options['isReadable']);
+        }
+
+        if(isset($options['isWritable'])) {
+            $this->setWritable($options['isWritable']);
         }
     }
 
@@ -98,6 +112,40 @@ class DateAttribute implements AttributeInterface
     {
         $this->accessType = $accessFlag;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isReadable(): bool
+    {
+        return $this->isReadable;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isWritable(): bool
+    {
+        return $this->isWritable;
+    }
+
+    /**
+     * Sets the readable flag of this attribute
+     * @param bool $isReadable
+     */
+    public function setReadable(bool $isReadable)
+    {
+        $this->isReadable = $isReadable;
+    }
+
+    /**
+     * Sets the writable flag of this attribute
+     * @param bool $isWritable
+     */
+    public function setWritable(bool $isWritable)
+    {
+        $this->isWritable = $isWritable;
     }
 
     /**

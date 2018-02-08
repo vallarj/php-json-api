@@ -57,6 +57,18 @@ interface AttributeInterface
     public function getAccessType(): int;
 
     /**
+     * Returns true if attribute is readable
+     * @return bool
+     */
+    public function isReadable(): bool;
+
+    /**
+     * Returns true if attributes is writable
+     * @return bool
+     */
+    public function isWritable(): bool;
+
+    /**
      * Returns a pre-processed value of the input value
      * @param $value
      * @return mixed

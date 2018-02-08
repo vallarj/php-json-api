@@ -35,6 +35,12 @@ class Attribute implements AttributeInterface
     /** @var bool Specifies if attribute is required. */
     private $isRequired = false;
 
+    /** @var bool Specifies if attribute is readable */
+    private $isReadable = true;
+
+    /** @var bool Specifies is attribute is writable */
+    private $isWritable = true;
+
     /** @var bool Validate attribute if null. Default is false. */
     private $validateIfEmpty = false;
 
@@ -63,6 +69,14 @@ class Attribute implements AttributeInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['isReadable'])) {
+            $this->setReadable($options['isReadable']);
+        }
+
+        if(isset($options['isWritable'])) {
+            $this->setWritable($options['isWritable']);
         }
 
         if(isset($options['validate_if_empty'])) {
@@ -108,6 +122,40 @@ class Attribute implements AttributeInterface
     public function getAccessType(): int
     {
         return $this->accessType;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isReadable(): bool
+    {
+        return $this->isReadable;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isWritable(): bool
+    {
+        return $this->isWritable;
+    }
+
+    /**
+     * Sets the readable flag of this attribute
+     * @param bool $isReadable
+     */
+    public function setReadable(bool $isReadable)
+    {
+        $this->isReadable = $isReadable;
+    }
+
+    /**
+     * Sets the writable flag of this attribute
+     * @param bool $isWritable
+     */
+    public function setWritable(bool $isWritable)
+    {
+        $this->isWritable = $isWritable;
     }
 
     /**
