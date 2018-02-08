@@ -20,7 +20,6 @@ namespace Vallarj\JsonApi\Schema;
 
 
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
-use Zend\Validator\AbstractValidator;
 use Zend\Validator\ValidatorChain;
 use Zend\Validator\ValidatorInterface;
 
@@ -28,9 +27,6 @@ class Attribute implements AttributeInterface
 {
     /** @var string Specifies the key of the attribute */
     private $key = "";
-
-    /** @var int Access type. Defaults to read and write. */
-    private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
 
     /** @var bool Specifies if attribute is required. */
     private $isRequired = false;
@@ -61,10 +57,6 @@ class Attribute implements AttributeInterface
     {
         if(isset($options['key'])) {
             $this->key = $options['key'];
-        }
-
-        if(isset($options['accessType'])) {
-            $this->setAccessType($options['accessType']);
         }
 
         if(isset($options['required'])) {
@@ -119,14 +111,6 @@ class Attribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function getAccessType(): int
-    {
-        return $this->accessType;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function isReadable(): bool
     {
         return $this->isReadable;
@@ -144,7 +128,7 @@ class Attribute implements AttributeInterface
      * Sets the readable flag of this attribute
      * @param bool $isReadable
      */
-    public function setReadable(bool $isReadable)
+    private function setReadable(bool $isReadable)
     {
         $this->isReadable = $isReadable;
     }
@@ -153,20 +137,9 @@ class Attribute implements AttributeInterface
      * Sets the writable flag of this attribute
      * @param bool $isWritable
      */
-    public function setWritable(bool $isWritable)
+    private function setWritable(bool $isWritable)
     {
         $this->isWritable = $isWritable;
-    }
-
-    /**
-     * Sets the access type of this attribute
-     * @param int $accessFlag
-     * @return $this
-     */
-    public function setAccessType(int $accessFlag)
-    {
-        $this->accessType = $accessFlag;
-        return $this;
     }
 
     /**
@@ -276,6 +249,7 @@ class Attribute implements AttributeInterface
     /**
      * Attach the Validators to the default ValidatorChain
      * @param array $validators
+     * @throws InvalidSpecificationException
      */
     private function setValidators(array $validators): void
     {

@@ -21,9 +21,6 @@ namespace Vallarj\JsonApi\Schema;
 
 interface AttributeInterface
 {
-    const ACCESS_READ   =   1;
-    const ACCESS_WRITE  =   2;
-
     /**
      * Set options of this specification
      * @param array $options    Array that contains the options for this specification
@@ -49,12 +46,6 @@ interface AttributeInterface
      * @param $value
      */
     public function setValue($parentObject, $value): void;
-
-    /**
-     * Returns the access type flag value
-     * @return int
-     */
-    public function getAccessType(): int;
 
     /**
      * Returns true if attribute is readable

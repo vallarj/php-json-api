@@ -20,7 +20,6 @@ namespace Vallarj\JsonApi;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
@@ -144,7 +143,6 @@ class Encoder implements EncoderInterface
         $attributes = [];
         $schemaAttributes = $schema->getAttributes();
         foreach($schemaAttributes as $schemaAttribute) {
-            //if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_READ) {
             if($schemaAttribute->isReadable()) {
                 $key = $schemaAttribute->getKey();
                 $attributes[$key] = $schemaAttribute->getValue($object);
