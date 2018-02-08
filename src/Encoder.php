@@ -20,7 +20,6 @@ namespace Vallarj\JsonApi;
 
 
 use Vallarj\JsonApi\Exception\InvalidArgumentException;
-use Vallarj\JsonApi\Schema\AttributeInterface;
 use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 use Vallarj\JsonApi\Schema\ToManyRelationshipInterface;
 use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
@@ -144,7 +143,7 @@ class Encoder implements EncoderInterface
         $attributes = [];
         $schemaAttributes = $schema->getAttributes();
         foreach($schemaAttributes as $schemaAttribute) {
-            if($schemaAttribute->getAccessType() & AttributeInterface::ACCESS_READ) {
+            if($schemaAttribute->isReadable()) {
                 $key = $schemaAttribute->getKey();
                 $attributes[$key] = $schemaAttribute->getValue($object);
             }
@@ -155,7 +154,7 @@ class Encoder implements EncoderInterface
         $schemaRelationships = $schema->getRelationships();
         foreach($schemaRelationships as $schemaRelationship) {
             if($schemaRelationship instanceof ToOneRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToOneRelationshipInterface::ACCESS_READ)) {
+                ($schemaRelationship->isReadable())) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $mappedObject = $schemaRelationship->getObject($object);
                 $key = $schemaRelationship->getKey();
@@ -165,7 +164,7 @@ class Encoder implements EncoderInterface
                     $relationships[$key]['data'] = $relationship;
                 }
             } else if($schemaRelationship instanceof ToManyRelationshipInterface &&
-                ($schemaRelationship->getAccessType() & ToManyRelationshipInterface::ACCESS_READ)) {
+                ($schemaRelationship->isReadable())) {
                 $expectedSchemas = $schemaRelationship->getExpectedSchemas();
                 $collection = $schemaRelationship->getCollection($object);
                 $key = $schemaRelationship->getKey();

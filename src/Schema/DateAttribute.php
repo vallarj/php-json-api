@@ -26,11 +26,14 @@ class DateAttribute implements AttributeInterface
     /** @var string Specifies the key of the attribute */
     private $key = "";
 
-    /** @var int Access type. Defaults to read and write. */
-    private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
-
     /** @var bool Specifies if attribute is required. */
     private $isRequired = false;
+
+    /** @var bool Specifies if attribute is readable. */
+    private $isReadable = true;
+
+    /** @var bool Specifies if attribute is writable. */
+    private $isWritable = true;
 
     /** @var Validator\Date Date validator */
     private $validator;
@@ -46,6 +49,14 @@ class DateAttribute implements AttributeInterface
 
         if(isset($options['required'])) {
             $this->setRequired($options['required']);
+        }
+
+        if(isset($options['isReadable'])) {
+            $this->setReadable($options['isReadable']);
+        }
+
+        if(isset($options['isWritable'])) {
+            $this->setWritable($options['isWritable']);
         }
     }
 
@@ -84,20 +95,35 @@ class DateAttribute implements AttributeInterface
     /**
      * @inheritdoc
      */
-    public function getAccessType(): int
+    public function isReadable(): bool
     {
-        return $this->accessType;
+        return $this->isReadable;
     }
 
     /**
-     * Sets the access type of this attribute
-     * @param int $accessFlag
-     * @return $this
+     * @inheritdoc
      */
-    public function setAccessType(int $accessFlag)
+    public function isWritable(): bool
     {
-        $this->accessType = $accessFlag;
-        return $this;
+        return $this->isWritable;
+    }
+
+    /**
+     * Sets the readable flag of this attribute
+     * @param bool $isReadable
+     */
+    private function setReadable(bool $isReadable)
+    {
+        $this->isReadable = $isReadable;
+    }
+
+    /**
+     * Sets the writable flag of this attribute
+     * @param bool $isWritable
+     */
+    private function setWritable(bool $isWritable)
+    {
+        $this->isWritable = $isWritable;
     }
 
     /**
