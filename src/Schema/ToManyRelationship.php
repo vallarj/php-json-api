@@ -40,9 +40,6 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
     private $expectedSchemas = [];
 
-    /** @var int Access type. Defaults to read and write. */
-    private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
-
     /** @var bool Specifies if relationship is readable */
     private $isReadable = true;
 
@@ -63,10 +60,6 @@ class ToManyRelationship implements ToManyRelationshipInterface
 
         if(isset($options['mappedAs'])) {
             $this->mappedAs = $options['mappedAs'];
-        }
-
-        if(isset($options['accessType'])) {
-            $this->setAccessType($options['accessType']);
         }
 
         if(isset($options['isReadable'])) {
@@ -150,25 +143,6 @@ class ToManyRelationship implements ToManyRelationshipInterface
         foreach($collection as $item) {
             $parentObject->{'remove' . ucfirst($this->mappedAs)}($item);
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getAccessType(): int
-    {
-        return $this->accessType;
-    }
-
-    /**
-     * Sets the access type of this relationship
-     * @param int $accessFlag
-     * @return $this
-     */
-    public function setAccessType(int $accessFlag)
-    {
-        $this->accessType = $accessFlag;
-        return $this;
     }
 
     /**

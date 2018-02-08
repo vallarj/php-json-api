@@ -21,9 +21,6 @@ namespace Vallarj\JsonApi\Schema;
 
 interface ToManyRelationshipInterface
 {
-    const ACCESS_READ   =   1;
-    const ACCESS_WRITE  =   2;
-
     /**
      * Set options of this specification.
      * @param array $options    Array that contains the options for this specification.
@@ -61,12 +58,6 @@ interface ToManyRelationshipInterface
      * @param $parentObject
      */
     public function clearCollection($parentObject): void;
-
-    /**
-     * Returns the access type flag value
-     * @return int
-     */
-    public function getAccessType(): int;
 
     /**
      * Returns true if relationship is readable
