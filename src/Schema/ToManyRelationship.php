@@ -34,7 +34,7 @@ class ToManyRelationship implements ToManyRelationshipInterface
     /** @var bool Specifies if relationship is required. */
     private $isRequired = false;
 
-    /** @var bool Validate attribute if null. Default is false. */
+    /** @var bool Validate relationship if null. Default is false. */
     private $validateIfEmpty = false;
 
     /** @var string[] Array of expected AbstractResourceSchema FQCNs */
@@ -42,6 +42,12 @@ class ToManyRelationship implements ToManyRelationshipInterface
 
     /** @var int Access type. Defaults to read and write. */
     private $accessType = self::ACCESS_READ | self::ACCESS_WRITE;
+
+    /** @var bool Specifies if relationship is readable */
+    private $isReadable = true;
+
+    /** @var bool Specifies if relationship is writable */
+    private $isWritable = true;
 
     /** @var callable   Relationship validator  */
     private $validator = null;
@@ -61,6 +67,14 @@ class ToManyRelationship implements ToManyRelationshipInterface
 
         if(isset($options['accessType'])) {
             $this->setAccessType($options['accessType']);
+        }
+
+        if(isset($options['isReadable'])) {
+            $this->setReadable($options['isReadable']);
+        }
+
+        if(isset($options['isWritable'])) {
+            $this->setWritable($options['isWritable']);
         }
 
         if(isset($options['required'])) {
@@ -155,6 +169,40 @@ class ToManyRelationship implements ToManyRelationshipInterface
     {
         $this->accessType = $accessFlag;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isReadable(): bool
+    {
+        return $this->isReadable;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isWritable(): bool
+    {
+        return $this->isWritable;
+    }
+
+    /**
+     * Sets the isReadable flag of this relationship
+     * @param bool $isReadable
+     */
+    private function setReadable(bool $isReadable)
+    {
+        $this->isReadable = $isReadable;
+    }
+
+    /**
+     * Sets the isWritable flag of this relationship
+     * @param bool $isWritable
+     */
+    private function setWritable(bool $isWritable)
+    {
+        $this->isWritable = $isWritable;
     }
 
     /**

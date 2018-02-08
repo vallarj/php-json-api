@@ -69,6 +69,18 @@ interface ToManyRelationshipInterface
     public function getAccessType(): int;
 
     /**
+     * Returns true if relationship is readable
+     * @return bool
+     */
+    public function isReadable(): bool;
+
+    /**
+     * Returns true if relationship is writable
+     * @return bool
+     */
+    public function isWritable(): bool;
+
+    /**
      * Returns ValidationResultInterface that represents the result of the validation
      * @param array $relationships  Array of relationship items, represented by an array with id and type indices
      * @param $context

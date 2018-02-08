@@ -69,6 +69,18 @@ interface ToOneRelationshipInterface
     public function getAccessType(): int;
 
     /**
+     * Returns true if relationship is readable
+     * @return bool
+     */
+    public function isReadable(): bool;
+
+    /**
+     * Returns true if relationship is writable
+     * @return bool
+     */
+    public function isWritable(): bool;
+
+    /**
      * Returns ValidationResultInterface that represents the result of the validation
      * @param $id
      * @param $type
