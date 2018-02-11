@@ -51,15 +51,15 @@ class Encoder implements EncoderInterface
     /**
      * @inheritdoc
      */
-    public function encode($resource, array $schemaClasses, array $includedKeys = []): string
+    public function encode($resource, array $schemas, array $includedKeys = []): string
     {
         $this->initializeService($includedKeys);
 
 
         if (is_object($resource)) {
-            $this->encodeSingleResource($resource, $schemaClasses);
+            $this->encodeSingleResource($resource, $schemas);
         } else if (is_array($resource)) {
-            $this->encodeResourceCollection($resource, $schemaClasses);
+            $this->encodeResourceCollection($resource, $schemas);
         } else {
             throw new InvalidArgumentException('Resource must be an object or an array of objects.');
         }
@@ -93,12 +93,12 @@ class Encoder implements EncoderInterface
         $this->success = false;
     }
 
-    private function encodeSingleResource($resource, array $schemaClasses): void
+    private function encodeSingleResource($resource, array $schemas): void
     {
         $resourceClass = is_null($resource) ? null : get_class($resource);
 
-        foreach($schemaClasses as $schemaClass) {
-            $schema = $this->schemaManager->get($schemaClass);
+        foreach($schemas as $schema) {
+            $schema = $this->schemaManager->get($schema);
             if($schema->getMappingClass() == $resourceClass) {
                 // Extract resource data
                 $this->data = $this->extractResource($resource, $schema);
@@ -109,14 +109,14 @@ class Encoder implements EncoderInterface
         throw new InvalidArgumentException("No compatible schema found for the given resource object.");
     }
 
-    private function encodeResourceCollection(array $resources, array $schemaClasses): void
+    private function encodeResourceCollection(array $resources, array $schemas): void
     {
         foreach($resources as $resource) {
             $resourceClass = is_null($resource) ? null : get_class($resource);
             $compatibleSchema = null;
 
-            foreach($schemaClasses as $schemaClass) {
-                $schema = $this->schemaManager->get($schemaClass);
+            foreach($schemas as $schema) {
+                $schema = $this->schemaManager->get($schema);
                 if($schema->getMappingClass() == $resourceClass) {
                     $compatibleSchema = $schema;
                 }
@@ -207,8 +207,8 @@ class Encoder implements EncoderInterface
     private function extractRelationship($mappedObject, string $key, array $expectedSchemas): ?array
     {
         $schema = null;
-        foreach($expectedSchemas as $schemaClass) {
-            $testSchema = $this->schemaManager->get($schemaClass);
+        foreach($expectedSchemas as $schema) {
+            $testSchema = $this->schemaManager->get($schema);
             $mappedObjectClass = is_null($mappedObject) ? null : get_class($mappedObject);
             if($testSchema->getMappingClass() == $mappedObjectClass) {
                 // Extract resource data
