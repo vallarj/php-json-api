@@ -27,7 +27,6 @@ return [
         'factories' => [
             Decoder::class => DecoderFactory::class,
             Encoder::class => EncoderFactory::class,
-            SchemaManager::class => SchemaManagerFactory::class,
         ],
     ],
 ];

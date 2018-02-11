@@ -33,9 +33,6 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Decoder implements DecoderInterface
 {
-    /** @var SchemaManagerInterface Handles resource schema instances */
-    private $schemaManager;
-
     /** @var array  Cache of instantiated objects */
     private $objectCache;
 
@@ -58,11 +55,9 @@ class Decoder implements DecoderInterface
 
     /**
      * Decoder constructor.
-     * @param SchemaManagerInterface $schemaManager
      */
-    function __construct(SchemaManagerInterface $schemaManager)
+    function __construct()
     {
-        $this->schemaManager = $schemaManager;
         $this->objectCache = [];
 
         $this->initialize();

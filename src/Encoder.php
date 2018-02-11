@@ -26,9 +26,6 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Encoder implements EncoderInterface
 {
-    /** @var SchemaManagerInterface Handles resource schema instances */
-    private $schemaManager;
-
     /** @var array Keys of relationships to include in the current operation */
     private $includedKeys;
 
@@ -46,12 +43,9 @@ class Encoder implements EncoderInterface
 
     /**
      * Encoder constructor.
-     * @param SchemaManagerInterface $schemaManager
      */
-    function __construct(SchemaManagerInterface $schemaManager)
+    function __construct()
     {
-        $this->schemaManager = $schemaManager;
-
         $this->initializeService();
     }
     /**
