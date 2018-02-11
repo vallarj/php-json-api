@@ -1,6 +1,6 @@
 <?php
 /**
- *  Copyright 2017 Justin Dane D. Vallar
+ *  Copyright 2017-2018 Justin Dane D. Vallar
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,17 +20,13 @@ namespace Vallarj\JsonApi\Factory;
 
 
 use Interop\Container\ContainerInterface;
-use Interop\Container\Exception\ContainerException;
 use Vallarj\JsonApi\Encoder;
-use Vallarj\JsonApi\SchemaManager;
-use Zend\ServiceManager\Exception\ServiceNotCreatedException;
-use Zend\ServiceManager\Exception\ServiceNotFoundException;
 use Zend\ServiceManager\Factory\FactoryInterface;
 
 class EncoderFactory implements FactoryInterface
 {
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
-        return new Encoder($container->get(SchemaManager::class));
+        return new Encoder();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- *  Copyright 2017 Justin Dane D. Vallar
+ *  Copyright 2017-2018 Justin Dane D. Vallar
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ return [
         'factories' => [
             Decoder::class => DecoderFactory::class,
             Encoder::class => EncoderFactory::class,
-            SchemaManager::class => SchemaManagerFactory::class,
         ],
     ],
 ];

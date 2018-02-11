@@ -1,6 +1,6 @@
 <?php
 /**
- *  Copyright 2017 Justin Dane D. Vallar
+ *  Copyright 2017-2018 Justin Dane D. Vallar
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,27 +21,28 @@ namespace Vallarj\JsonApi;
 
 use Vallarj\JsonApi\Error\ErrorDocument;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 
 interface DecoderInterface
 {
     /**
      * Decodes a POST document into a new object from a compatible schema
      * @param string $data
-     * @param array $schemaClasses
+     * @param ResourceSchemaInterface[] $schemas
      * @param bool $allowEphemeralId
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodePostResource(
         string $data,
-        array $schemaClasses,
+        array $schemas,
         bool $allowEphemeralId = false
     );
 
     /**
      * Decodes a PATCH document into a new object from a compatible schema
      * @param string $data
-     * @param array $schemaClasses
+     * @param ResourceSchemaInterface[] $schemas
      * @param mixed $expectedId     If not null, decoder will check if provided ID matches the expected ID
      * @param bool $denyMissingFields   Invalidates decode operation if required fields are missing. Defaults to false.
      * @return mixed
@@ -49,7 +50,7 @@ interface DecoderInterface
      */
     public function decodePatchResource(
         string $data,
-        array $schemaClasses,
+        array $schemas,
         $expectedId = null,
         bool $denyMissingFields = false
     );
@@ -57,25 +58,25 @@ interface DecoderInterface
     /**
      * Decodes a To-one relationship request into a new object from a compatible schema
      * @param string $data
-     * @param array $schemaClasses
+     * @param ResourceSchemaInterface[] $schemas
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodeToOneRelationshipRequest(
         string $data,
-        array $schemaClasses
+        array $schemas
     );
 
     /**
      * Decodes a To-many relationship request into new objects from a compatible schema
      * @param string $data
-     * @param array $schemaClasses
+     * @param ResourceSchemaInterface[] $schemas
      * @return mixed
      * @throws InvalidFormatException
      */
     public function decodeToManyRelationshipRequest(
         string $data,
-        array $schemaClasses
+        array $schemas
     );
 
     /**

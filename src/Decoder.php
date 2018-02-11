@@ -1,6 +1,6 @@
 <?php
 /**
- *  Copyright 2017 Justin Dane D. Vallar
+ *  Copyright 2017-2018 Justin Dane D. Vallar
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,9 +33,6 @@ use Vallarj\JsonApi\Schema\ToOneRelationshipInterface;
 
 class Decoder implements DecoderInterface
 {
-    /** @var SchemaManagerInterface Handles resource schema instances */
-    private $schemaManager;
-
     /** @var array  Cache of instantiated objects */
     private $objectCache;
 
@@ -58,11 +55,9 @@ class Decoder implements DecoderInterface
 
     /**
      * Decoder constructor.
-     * @param SchemaManagerInterface $schemaManager
      */
-    function __construct(SchemaManagerInterface $schemaManager)
+    function __construct()
     {
-        $this->schemaManager = $schemaManager;
         $this->objectCache = [];
 
         $this->initialize();
@@ -73,7 +68,7 @@ class Decoder implements DecoderInterface
      */
     public function decodePostResource(
         string $data,
-        array $schemaClasses,
+        array $schemas,
         bool $allowEphemeralId = false
     ) {
         $this->initialize();
@@ -98,7 +93,7 @@ class Decoder implements DecoderInterface
         }
 
         // Do not ignore missing fields
-        $resource = $this->decodeSingleResource($data, $schemaClasses, false);
+        $resource = $this->decodeSingleResource($data, $schemas, false);
 
         // Return null if errors occurred
         return $this->hasValidationErrors() ? null : $resource;
@@ -109,7 +104,7 @@ class Decoder implements DecoderInterface
      */
     public function decodePatchResource(
         string $data,
-        array $schemaClasses,
+        array $schemas,
         $expectedId = null,
         bool $denyMissingFields = false
     ) {
@@ -134,7 +129,7 @@ class Decoder implements DecoderInterface
         $this->context['id'] = $data->id;
 
         // Decode single resource
-        $resource = $this->decodeSingleResource($data, $schemaClasses, !$denyMissingFields);
+        $resource = $this->decodeSingleResource($data, $schemas, !$denyMissingFields);
 
         // Return null if errors occurred
         return $this->hasValidationErrors() ? null : $resource;
@@ -145,7 +140,7 @@ class Decoder implements DecoderInterface
      */
     public function decodeToOneRelationshipRequest(
         string $data,
-        array $schemaClasses
+        array $schemas
     ) {
         $this->initialize();
 
@@ -162,8 +157,8 @@ class Decoder implements DecoderInterface
         $resourceType = $data->type;
         $compatibleSchema = null;
 
-        foreach($schemaClasses as $schemaClass) {
-            $schema = $this->schemaManager->get($schemaClass);
+        /** @var ResourceSchemaInterface $schema */
+        foreach($schemas as $schema) {
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -182,7 +177,7 @@ class Decoder implements DecoderInterface
      */
     public function decodeToManyRelationshipRequest(
         string $data,
-        array $schemaClasses
+        array $schemas
     ) {
         $this->initialize();
 
@@ -202,8 +197,8 @@ class Decoder implements DecoderInterface
             $resourceType = $item->type;
             $compatibleSchema = null;
 
-            foreach($schemaClasses as $schemaClass) {
-                $schema = $this->schemaManager->get($schemaClass);
+            /** @var ResourceSchemaInterface $schema */
+            foreach($schemas as $schema) {
                 if($schema->getResourceType() == $resourceType) {
                     $compatibleSchema = $schema;
                     break;
@@ -275,18 +270,17 @@ class Decoder implements DecoderInterface
     /**
      * Decode a single resource.
      * @param object $data
-     * @param array $schemaClasses
+     * @param ResourceSchemaInterface[] $schemas
      * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
      */
-    private function decodeSingleResource($data, array $schemaClasses, bool $ignoreMissingFields)
+    private function decodeSingleResource($data, array $schemas, bool $ignoreMissingFields)
     {
         $resourceType = $data->type;
         $compatibleSchema = null;
 
-        foreach($schemaClasses as $schemaClass) {
-            $schema = $this->schemaManager->get($schemaClass);
+        foreach($schemas as $schema) {
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -624,8 +618,8 @@ class Decoder implements DecoderInterface
             return true;
         }
 
-        foreach($expectedSchemas as $schemaClass) {
-            $schema = $this->schemaManager->get($schemaClass);
+        /** @var ResourceSchemaInterface $schema */
+        foreach($expectedSchemas as $schema) {
             if($schema->getResourceType() == $relationship['type']) {
                 $object = $this->resolveRelationshipObject($schema, $relationship['id']);
                 $schemaRelationship->setObject($parentObject, $object);
@@ -651,8 +645,8 @@ class Decoder implements DecoderInterface
 
         $modifiedCount = 0;
         foreach($relationship as $item) {
-            foreach($expectedSchemas as $schemaClass) {
-                $schema = $this->schemaManager->get($schemaClass);
+            /** @var ResourceSchemaInterface $schema */
+            foreach($expectedSchemas as $schema) {
                 if($schema->getResourceType() == $item['type']) {
                     $object = $this->resolveRelationshipObject($schema, $item['id']);
                     $schemaRelationship->addItem($parentObject, $object);
