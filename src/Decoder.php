@@ -157,8 +157,8 @@ class Decoder implements DecoderInterface
         $resourceType = $data->type;
         $compatibleSchema = null;
 
+        /** @var ResourceSchemaInterface $schema */
         foreach($schemas as $schema) {
-            $schema = $this->schemaManager->get($schema);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -197,8 +197,8 @@ class Decoder implements DecoderInterface
             $resourceType = $item->type;
             $compatibleSchema = null;
 
+            /** @var ResourceSchemaInterface $schema */
             foreach($schemas as $schema) {
-                $schema = $this->schemaManager->get($schema);
                 if($schema->getResourceType() == $resourceType) {
                     $compatibleSchema = $schema;
                     break;
@@ -270,7 +270,7 @@ class Decoder implements DecoderInterface
     /**
      * Decode a single resource.
      * @param object $data
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @param bool $ignoreMissingFields
      * @return mixed
      * @throws InvalidFormatException
@@ -281,7 +281,6 @@ class Decoder implements DecoderInterface
         $compatibleSchema = null;
 
         foreach($schemas as $schema) {
-            $schema = $this->schemaManager->get($schema);
             if($schema->getResourceType() == $resourceType) {
                 $compatibleSchema = $schema;
                 break;
@@ -619,8 +618,8 @@ class Decoder implements DecoderInterface
             return true;
         }
 
+        /** @var ResourceSchemaInterface $schema */
         foreach($expectedSchemas as $schema) {
-            $schema = $this->schemaManager->get($schema);
             if($schema->getResourceType() == $relationship['type']) {
                 $object = $this->resolveRelationshipObject($schema, $relationship['id']);
                 $schemaRelationship->setObject($parentObject, $object);
@@ -646,8 +645,8 @@ class Decoder implements DecoderInterface
 
         $modifiedCount = 0;
         foreach($relationship as $item) {
+            /** @var ResourceSchemaInterface $schema */
             foreach($expectedSchemas as $schema) {
-                $schema = $this->schemaManager->get($schema);
                 if($schema->getResourceType() == $item['type']) {
                     $object = $this->resolveRelationshipObject($schema, $item['id']);
                     $schemaRelationship->addItem($parentObject, $object);

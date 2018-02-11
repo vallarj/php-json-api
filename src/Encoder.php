@@ -97,8 +97,8 @@ class Encoder implements EncoderInterface
     {
         $resourceClass = is_null($resource) ? null : get_class($resource);
 
+        /** @var ResourceSchemaInterface $schema */
         foreach($schemas as $schema) {
-            $schema = $this->schemaManager->get($schema);
             if($schema->getMappingClass() == $resourceClass) {
                 // Extract resource data
                 $this->data = $this->extractResource($resource, $schema);
@@ -115,8 +115,8 @@ class Encoder implements EncoderInterface
             $resourceClass = is_null($resource) ? null : get_class($resource);
             $compatibleSchema = null;
 
+            /** @var ResourceSchemaInterface $schema */
             foreach($schemas as $schema) {
-                $schema = $this->schemaManager->get($schema);
                 if($schema->getMappingClass() == $resourceClass) {
                     $compatibleSchema = $schema;
                 }
@@ -206,26 +206,26 @@ class Encoder implements EncoderInterface
 
     private function extractRelationship($mappedObject, string $key, array $expectedSchemas): ?array
     {
-        $schema = null;
+        $compatibleSchema = null;
+        /** @var ResourceSchemaInterface $schema */
         foreach($expectedSchemas as $schema) {
-            $testSchema = $this->schemaManager->get($schema);
             $mappedObjectClass = is_null($mappedObject) ? null : get_class($mappedObject);
-            if($testSchema->getMappingClass() == $mappedObjectClass) {
+            if($schema->getMappingClass() == $mappedObjectClass) {
                 // Extract resource data
-                $schema = $testSchema;
+                $compatibleSchema = $schema;
                 break;
             }
         }
 
-        if(!$schema) {
+        if(!$compatibleSchema) {
             return null;
         }
 
         // Get the resource type
-        $resourceType = $schema->getResourceType();
+        $resourceType = $compatibleSchema->getResourceType();
 
         // Get the ID
-        $resourceId = $schema->getIdentifier()->getResourceId($mappedObject);
+        $resourceId = $compatibleSchema->getIdentifier()->getResourceId($mappedObject);
 
         // Push key to the walker array
         array_push($this->includedWalker, $key);
@@ -234,7 +234,7 @@ class Encoder implements EncoderInterface
         if(in_array(implode('.', $this->includedWalker), $this->includedKeys) &&
             !isset($this->included[$resourceType][$resourceId])) {
             // Indexing by type and ID ensures a unique resource is included only once
-            $this->included[$resourceType][$resourceId] = $this->extractResource($mappedObject, $schema);
+            $this->included[$resourceType][$resourceId] = $this->extractResource($mappedObject, $compatibleSchema);
         }
 
         // Pop key from walker array

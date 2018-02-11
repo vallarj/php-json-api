@@ -19,12 +19,14 @@
 namespace Vallarj\JsonApi;
 
 
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
+
 interface EncoderInterface
 {
     /**
      * Encodes an object into a JSON API document
      * @param $resource
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @param array $includedKeys
      * @return string
      */

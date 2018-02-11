@@ -21,13 +21,14 @@ namespace Vallarj\JsonApi;
 
 use Vallarj\JsonApi\Error\ErrorDocument;
 use Vallarj\JsonApi\Exception\InvalidFormatException;
+use Vallarj\JsonApi\Schema\ResourceSchemaInterface;
 
 interface DecoderInterface
 {
     /**
      * Decodes a POST document into a new object from a compatible schema
      * @param string $data
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @param bool $allowEphemeralId
      * @return mixed
      * @throws InvalidFormatException
@@ -41,7 +42,7 @@ interface DecoderInterface
     /**
      * Decodes a PATCH document into a new object from a compatible schema
      * @param string $data
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @param mixed $expectedId     If not null, decoder will check if provided ID matches the expected ID
      * @param bool $denyMissingFields   Invalidates decode operation if required fields are missing. Defaults to false.
      * @return mixed
@@ -57,7 +58,7 @@ interface DecoderInterface
     /**
      * Decodes a To-one relationship request into a new object from a compatible schema
      * @param string $data
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @return mixed
      * @throws InvalidFormatException
      */
@@ -69,7 +70,7 @@ interface DecoderInterface
     /**
      * Decodes a To-many relationship request into new objects from a compatible schema
      * @param string $data
-     * @param array $schemas
+     * @param ResourceSchemaInterface[] $schemas
      * @return mixed
      * @throws InvalidFormatException
      */
