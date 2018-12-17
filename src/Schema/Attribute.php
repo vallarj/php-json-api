@@ -153,7 +153,7 @@ class Attribute implements AttributeInterface
             $value = trim($value);
 
             // If empty string, set value to null.
-            if(!$value) {
+            if($value === "") {
                 $value = null;
             }
         }
