@@ -25,10 +25,12 @@ interface EncoderInterface
 {
     /**
      * Encodes an object into a JSON API document
+     *
      * @param $resource
      * @param ResourceSchemaInterface[] $schemas
      * @param array $includedKeys
+     * @param array $meta
      * @return string
      */
-    public function encode($resource, array $schemas, array $includedKeys = []): string;
+    public function encode($resource, array $schemas, array $includedKeys = [], array $meta = []): string;
 }

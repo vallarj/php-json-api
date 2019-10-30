@@ -51,10 +51,9 @@ class Encoder implements EncoderInterface
     /**
      * @inheritdoc
      */
-    public function encode($resource, array $schemas, array $includedKeys = []): string
+    public function encode($resource, array $schemas, array $includedKeys = [], array $meta = []): string
     {
         $this->initializeService($includedKeys);
-
 
         if (is_object($resource)) {
             $this->encodeSingleResource($resource, $schemas);
@@ -78,6 +77,10 @@ class Encoder implements EncoderInterface
 
         if(!empty($included)) {
             $root['included'] = $included;
+        }
+
+        if(!empty($meta)) {
+            $root['meta'] = $meta;
         }
 
         // Encode the data
