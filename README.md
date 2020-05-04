@@ -1,2 +1,2 @@
-# PHP Object mapper
-JSON API library for Zend Framework 3
+# PHP JSONAPI
+JSON API library for PHP
