@@ -4,9 +4,9 @@
     "type": "library",
     "license": "Apache-2.0",
     "keywords": [
-        "framework",
-        "mvc",
-        "zf"
+        "json-api",
+        "jsonapi",
+        "php"
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -18,11 +18,6 @@
     "autoload": {
         "psr-4": {
             "Vallarj\\JsonApi\\": "src/"
-        }
-    },
-    "extra": {
-        "zf": {
-            "component": "Vallarj\\JsonApi"
         }
     },
     "scripts": {
