@@ -20,8 +20,8 @@ namespace Vallarj\JsonApi\Schema;
 
 
 use Vallarj\JsonApi\Exception\InvalidSpecificationException;
-use Zend\Validator\ValidatorChain;
-use Zend\Validator\ValidatorInterface;
+use Laminas\Validator\ValidatorChain;
+use Laminas\Validator\ValidatorInterface;
 
 class Attribute implements AttributeInterface
 {
