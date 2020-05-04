@@ -19,7 +19,7 @@
 namespace Vallarj\JsonApi\Schema;
 
 
-use Zend\Validator;
+use Laminas\Validator;
 
 class DateAttribute implements AttributeInterface
 {
